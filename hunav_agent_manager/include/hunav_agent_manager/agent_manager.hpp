@@ -45,6 +45,7 @@ struct agent {
   int type;
   int behavior;
   int behavior_state;
+  int gesture;
   sfm::Agent sfmAgent;
 };
 
@@ -201,6 +202,7 @@ public:
    * @param dt time to compute the agent's movement
    */
   void blockRobot(int id, double dt);
+  void gesture(int id, bool wait);
 
   bool goalReached(int id);
   bool updateGoal(int id);

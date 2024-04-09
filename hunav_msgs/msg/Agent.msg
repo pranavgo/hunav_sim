@@ -30,6 +30,7 @@ float32 desired_velocity
 float32 radius
 float32 linear_vel
 float32 angular_vel
+int32 gesture
 
 geometry_msgs/Pose[] goals
 bool cyclic_goals

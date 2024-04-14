@@ -3,12 +3,8 @@
 namespace hunav
 {
 
-  // using std::placeholders::_1;
-  // using std::placeholders::_2;
-
   AgentManager::AgentManager()
-  { //: initialized_(false), max_dist_view_(10.0) {
-
+  {
     init();
     printf("[AgentManager.Constructor] AgentManager initialized \n");
   }
@@ -26,69 +22,35 @@ namespace hunav
     step_count = 1;
     step_count2 = 1;
     move = false;
-    // max_dist_view_squared_ = max_dist_view_ * max_dist_view_;
     printf("[AgentManager.init] initialized \n");
   }
 
   float AgentManager::robotSquaredDistance(int id)
   {
-    // std::lock_guard<std::mutex> guard(mutex_);
-    // mutex_.lock();
-
-    // hunav_msgs/msg/Agents
     float xa = agents_[id].sfmAgent.position.getX(); // position.position.x;
     float ya = agents_[id].sfmAgent.position.getY(); // position.y;
     float xr = robot_.sfmAgent.position.getX();      // position.x;
     float yr = robot_.sfmAgent.position.getY();      // position.y;
-
-    //   sfm agents
-    //   float xa = agents_[request->agent_id].position.getX();
-    //   float ya = agents_[request->agent_id].position.getY();
-    //   float xr = robot_.position.getX();
-    //   float yr = robot_.position.getY();
-
-    // mutex_.unlock();
-    // double d = (xr - xa) * (xr - xa) + (yr - ya) * (yr - ya);
-    // std::cout << "AgentManager.robotSquaredDistance:" << sqrt(d) << std::endl;
     return (xr - xa) * (xr - xa) + (yr - ya) * (yr - ya);
   }
 
   bool AgentManager::lineOfSight(int id)
   {
-
-    // mutex_.lock();
     float ax = agents_[id].sfmAgent.position.getX();
     float ay = agents_[id].sfmAgent.position.getY();
     float rx = robot_.sfmAgent.position.getX();
     float ry = robot_.sfmAgent.position.getY();
     double yaw = agents_[id].sfmAgent.yaw.toRadian();
-    // tf2::Quaternion q(
-    //     agents_[id].position.orientation.x, agents_[id].position.orientation.y,
-    //     agents_[id].position.orientation.z,
-    //     agents_[id].position.orientation.w);
-    // mutex_.unlock();
-    // tf2::Matrix3x3 m(q);
-    // double roll, pitch, yaw;
-    // m.getRPY(roll, pitch, yaw);
     float nrx = (rx - ax) * cos(yaw) + (ry - ay) * sin(yaw);
     float nry = -(rx - ax) * sin(yaw) + (ry - ay) * cos(yaw);
     float rangle = atan2(nry, nrx);
 
     if (abs(rangle) > (M_PI / 2.0 + 0.17))
     {
-      // std::cout << "[AgentManager.lineOfSight] Agent " << id + 1
-      //           << " can NOT see the robot!" << std::endl;
       return false;
     }
     else
     {
-      // std::cout << "[AgentManager.lineOfSight] Agent " << id + 1
-      //           << " is seeing the robot!" << std::endl;
-
-      // ----------------------------------------
-      // TODO: do raytracing to check visibility
-      // ----------------------------------------
-
       return true;
     }
   }
@@ -107,12 +69,13 @@ namespace hunav
     }
   }
 
-  // void AgentManager::isRobotVisible(
-  //     const std::shared_ptr<hunav_msgs::srv::IsRobotVisible::Request>
-  //     request, std::shared_ptr<hunav_msgs::srv::IsRobotVisible::Response>
-  //     response) {
-  //   response->visible = isRobotVisible(request->agent_id)
-  // }
+  utils::Vector2d AgentManager::getRobotVelocity()
+  {
+    std::lock_guard<std::mutex> guard(mutex_);
+    // Assuming robot_ has velocity attributes vx and vy
+    return utils::Vector2d(robot_.sfmAgent.velocity.getX(), robot_.sfmAgent.velocity.getY());
+  }
+
 
   void AgentManager::lookAtTheRobot(int id)
   {
@@ -130,12 +93,9 @@ namespace hunav
     float nry = -(rx - ax) * sin(ah) + (ry - ay) * cos(ah);
     utils::Angle robotYaw; // = utils::Angle::fromRadian(atan2(nry, nrx));
     robotYaw.setRadian(atan2(nry, nrx));
-
-    // Change the angle step by step according to
-    // the time_step_secs_ and a maximum angular vel
     float max_ang_vel = M_PI; // rad/secs
     utils::Angle max_angle =
-        utils::Angle::fromRadian(max_ang_vel * 0.01); // time_step_secs_);
+        utils::Angle::fromRadian(max_ang_vel * 0.01);
     if (robotYaw.sign() < 0)
       max_angle.setRadian(max_angle.toRadian() * (-1));
 
@@ -167,8 +127,6 @@ namespace hunav
     // stop and look at the robot
     if (dist <= 1.5)
     {
-      // printf("Agent %i stoping and looking at the robot! dist: %.2f\n", id,
-      // dist);
       // Agent position
       float ax = agents_[id].sfmAgent.position.getX();
       float ay = agents_[id].sfmAgent.position.getY();
@@ -194,16 +152,10 @@ namespace hunav
       // move slowly when close
       float ini_desired_vel = agents_[id].sfmAgent.desiredVelocity;
       agents_[id].sfmAgent.desiredVelocity = 1.8 * (dist / max_dist_view_);
-
-      // printf("Agent %i approximating robot! dist: %.2f, desiredvel: %.3f\n",
-      // id,
-      //        dist, agents_[id].sfmAgent.desiredVelocity);
-
       // recompute forces
       computeForces(id);
       // update position
       sfm::SFM.updatePosition(agents_[id].sfmAgent, dt);
-
       // restore values just in case the approximation
       // ends in the next iteration
       agents_[id].sfmAgent.goals.pop_front();
@@ -236,30 +188,19 @@ namespace hunav
     g.radius = 0.05; // robot_.sfmAgent.radius;
     agents_[id].sfmAgent.goals.push_front(g);
 
-    // We should change the weights of the sfm agent???
-
     // change agent vel according to the proximity of the robot
     // move slowly when close
     float ini_desired_vel = agents_[id].sfmAgent.desiredVelocity;
-    // agents_[id].sfmAgent.desiredVelocity = 2.0 * (dist / max_dist_view_);
     agents_[id].sfmAgent.desiredVelocity = 2.0;
-
-    // printf("Agent %i approximating robot! dist: %.2f, desiredvel: %.3f\n",
-    // id,
-    //        dist, agents_[id].sfmAgent.desiredVelocity);
-
     // recompute forces
     computeForces(id);
     // update position
     sfm::SFM.updatePosition(agents_[id].sfmAgent, dt);
-
     // if the agent is close to the robot,
     // look at the robot
     float dist = sqrt(robotSquaredDistance(id));
     if (dist <= 1.2)
     {
-      // printf("Agent %i stoping and looking at the robot! dist: %.2f\n", id,
-      // dist);
       // Agent position
       float ax = agents_[id].sfmAgent.position.getX();
       float ay = agents_[id].sfmAgent.position.getY();
@@ -269,13 +210,22 @@ namespace hunav
       float nry = -(rx - ax) * sin(ah) + (ry - ay) * cos(ah);
       utils::Angle robotYaw; // = utils::Angle::fromRadian(atan2(nry, nrx));
       robotYaw.setRadian(atan2(nry, nrx));
-
       agents_[id].sfmAgent.yaw = agents_[id].sfmAgent.yaw + robotYaw;
     }
 
     // restore the goals and the velocity
     agents_[id].sfmAgent.goals = gls;
     agents_[id].sfmAgent.desiredVelocity = ini_desired_vel;
+  }
+  
+  void AgentManager::makeGesture(int id, int gesture = 0)
+  {
+    agents_[id].gesture = gesture; 
+  }
+  utils::Vector2d AgentManager::getRobotPosition()
+  {
+    std::lock_guard<std::mutex> guard(mutex_);
+    return utils::Vector2d(robot_.sfmAgent.position.getX(), robot_.sfmAgent.position.getY());
   }
 
   void AgentManager::avoidRobot(int id, double dt)
@@ -333,6 +283,13 @@ namespace hunav
       agents_[id].sfmAgent.goals.push_back(g);
     }
     return true;
+  }
+  
+  void AgentManager::updatePosition(int id, double dt)
+  {
+    std::lock_guard<std::mutex> guard(mutex_);
+    agents_[id].behavior_state = 0;
+    sfm::SFM.updatePosition(agents_[id].sfmAgent, dt);
   }
 
   void AgentManager::initializeAgents(
@@ -423,28 +380,9 @@ namespace hunav
   bool AgentManager::updateAgents(const hunav_msgs::msg::Agents::SharedPtr msg)
   {
 
-    // update velocities
-    // if (agents_initialized_ && time_step_secs_ > 0.0) {
-
     // Update agents velocites only in the ROS cycle
     for (auto a : msg->agents)
     {
-
-      // velocities computed by myself
-      // double anvel =
-      //     normalizeAngle(a.yaw - agents_[a.id].sfmAgent.yaw.toRadian()) /
-      //     (time_step_secs_); // * step_count);
-      // agents_[a.id].sfmAgent.angularVelocity = anvel;
-      // double xi = agents_[a.id].sfmAgent.position.getX();
-      // double yi = agents_[a.id].sfmAgent.position.getY();
-      // double xf = a.position.position.x;
-      // double yf = a.position.position.y;
-      // double dist = sqrt((xf - xi) * (xf - xi) + (yf - yi) * (yf - yi));
-      // agents_[a.id].sfmAgent.linearVelocity =
-      //     dist / (time_step_secs_);              // * step_count);
-      // double vx = (xf - xi) / (time_step_secs_); // * step_count);
-      // double vy = (yf - yi) / (time_step_secs_); // * step_count);
-      // agents_[a.id].sfmAgent.velocity.set(vx, vy);
 
       // position
       agents_[a.id].sfmAgent.position.set(a.position.position.x,
@@ -459,16 +397,6 @@ namespace hunav
                a.velocity.linear.y * a.velocity.linear.y);
       agents_[a.id].sfmAgent.angularVelocity = a.velocity.angular.z;
 
-      // update goals
-      // agents_[a.id].sfmAgent.goals.clear();
-      // for (auto g : a.goals) {
-      //   sfm::Goal sfmg;
-      //   sfmg.center.setX(g.position.x);
-      //   sfmg.center.setY(g.position.y);
-      //   sfmg.radius = a.goal_radius;
-      //   agents_[a.id].sfmAgent.goals.push_back(sfmg);
-      // }
-
       // update closest obstacles
       agents_[a.id].sfmAgent.obstacles1.clear();
       if (!a.closest_obs.empty())
@@ -480,35 +408,16 @@ namespace hunav
           agents_[a.id].sfmAgent.obstacles1.push_back(o);
         }
       }
-
-      // printf("%s updating agents vels computed lv:%.3f, lvx:%.3f, lvy:%.3f, "
-      //        "av:%.3f\n",
-      //        a.name.c_str(), agents_[a.id].sfmAgent.linearVelocity,
-      //        agents_[a.id].sfmAgent.velocity.getX(),
-      //        agents_[a.id].sfmAgent.velocity.getY(),
-      //        agents_[a.id].sfmAgent.angularVelocity);
     }
     step_count = 1;
     return true;
-
-    // } else {
-    //   step_count++;
-    //   return false;
-    // }
   }
 
   void AgentManager::updateAgentRobot(
       const hunav_msgs::msg::Agent::SharedPtr msg)
   {
-    // Update robot
     robot_.sfmAgent.position.set(msg->position.position.x,
                                  msg->position.position.y);
-    // tf2::Quaternion q(
-    //     robot_.position.orientation.x, robot_.position.orientation.y,
-    //     robot_.position.orientation.z, robot_.position.orientation.w);
-    // tf2::Matrix3x3 m(q);
-    // double roll, pitch, yaw;
-    // m.getRPY(roll, pitch, yaw);
     robot_.sfmAgent.yaw.setRadian(msg->yaw);
     robot_.sfmAgent.velocity.set(msg->velocity.linear.x, msg->velocity.linear.y);
     robot_.sfmAgent.linearVelocity =
@@ -516,17 +425,6 @@ namespace hunav
              msg->velocity.linear.y * msg->velocity.linear.y);
     robot_.sfmAgent.angularVelocity = msg->velocity.angular.z;
   }
-
-  // void AgentManager::robotCallback(
-  //     const hunav_msgs::msg::Agent::SharedPtr msg) const {
-  //   robot_ = *msg;
-  //   if (!robot_initialized_) {
-  //     initializeSFMRobot();
-  //     robot_initialized_ = true;
-  //   } else {
-  //     updateSFMRobot();
-  //   }
-  // }
 
   hunav_msgs::msg::Agent AgentManager::getUpdatedAgentMsg(int id)
   {
@@ -556,11 +454,6 @@ namespace hunav
       p.position.y = g.center.getY();
       a.goals.push_back(p);
     }
-
-    //(agents[i].goals.front().center - agents[i].position).norm() <=
-    //          agents[i].goals.front().radius)
-    // robot_received_ = false;
-    // agents_received_ = false;
     return a;
   }
 
@@ -668,21 +561,7 @@ namespace hunav
     std::unordered_map<int, agent>::iterator itr;
     for (itr = agents_.begin(); itr != agents_.end(); itr++)
     {
-      // printf("[AgentManager.ComputeForces] Agent %s, x:%.2f, y:%.2f
-      // dvel:%.2f\n",
-      //        itr->second.name.c_str(), itr->second.sfmAgent.position.getX(),
-      //        itr->second.sfmAgent.position.getY(),
-      //        itr->second.sfmAgent.desiredVelocity);
-
       computeForces(itr->second.sfmAgent.id);
-
-      // printf("[AgentManager.ComputeForces] \tForces. global:%.4f, goal:%.4f "
-      //        "soc:%.4f, "
-      //        "obs:%.4f \n",
-      //        itr->second.sfmAgent.forces.globalForce.norm(),
-      //        itr->second.sfmAgent.forces.desiredForce.norm(),
-      //        itr->second.sfmAgent.forces.socialForce.norm(),
-      //        itr->second.sfmAgent.forces.obstacleForce.norm());
     }
   }
 
@@ -692,12 +571,6 @@ namespace hunav
   {
 
     std::lock_guard<std::mutex> guard(mutex_);
-
-    // printf("[AgentManager.updateAllAgents] Receiving agents from
-    // simulator...\n"); for (auto &a : agents_msg->agents) {
-    //   printf("[AgentManager.updateAllAgents]\tagent %s\n", a.name.c_str());
-    // }
-
     header_ = agents_msg->header;
 
     if (!robot_initialized_)
@@ -707,21 +580,10 @@ namespace hunav
 
     if (!agents_initialized_)
     {
-      // initializeBehaviorTree();
       initializeAgents(agents_msg);
-      // prev_time_ = agents_msg->header.stamp;
-      // time_step_secs_ = 0.0;
-      // computeForces();
     }
     else if (robot_initialized_ && agents_initialized_)
     {
-      // time_step_secs_ =
-      //     (rclcpp::Time(agents_msg->header.stamp) - prev_time_).seconds();
-      // printf("AgentManager. time_step_secs_: %.5f\n", time_step_secs_);
-      // if (time_step_secs_ < 0.009) {
-      //   return;
-      // }
-      // prev_time_ = agents_msg->header.stamp;
       updateAgentRobot(robot_msg);
       move = updateAgents(agents_msg);
     }
@@ -735,9 +597,6 @@ namespace hunav
   {
 
     std::lock_guard<std::mutex> guard(mutex_);
-
-    // printf("[AgentManager.updateAgentsAndRobot] Receiving agents from "
-    //        "simulator...\n");
 
     header_ = agents_msg->header;
 
@@ -756,20 +615,10 @@ namespace hunav
     }
     if (!agents_initialized_)
     {
-
       initializeAgents(std::make_shared<hunav_msgs::msg::Agents>(ags));
-      // prev_time_ = agents_msg->header.stamp;
-      // time_step_secs_ = 0.0;
     }
     else
     {
-      // // time_step_secs_ = 0.001;
-      // time_step_secs_ =
-      //     (rclcpp::Time(agents_msg->header.stamp) - prev_time_).seconds();
-      // if (time_step_secs_ < 0.009) {
-      //   return;
-      // }
-      // prev_time_ = agents_msg->header.stamp;
       updateAgentRobot(rob);
       move = updateAgents(std::make_shared<hunav_msgs::msg::Agents>(ags));
     }
@@ -786,87 +635,4 @@ namespace hunav
     else
       return false;
   }
-
-  // bool AgentManager::running() {
-  //   printf("[agentManager.running] running called!\n");
-  //   std::lock_guard<std::mutex> guard(mutex_);
-  //   if (std::find(agent_status_.begin(), agent_status_.end(), false) ==
-  //       agent_status_.end()) {
-  //     agent_status_.clear();
-  //     agent_status_.assign(agents_.size(), false);
-  //     printf("[agentManager.running] return false - task completed\n");
-  //     return false;
-  //   } else {
-  //     printf("[agentManager.running] return true - task running\n");
-  //     return true;
-  //   }
-  // }
-
-  void AgentManager::updatePosition(int id, double dt)
-  {
-
-    std::lock_guard<std::mutex> guard(mutex_);
-
-    agents_[id].behavior_state = 0;
-
-    // double newyaw = atan2(agents_[id].sfmAgent.forces.globalForce.getY(),
-    //                      agents_[id].sfmAgent.forces.globalForce.getX());
-    // agents_[id].sfmAgent.yaw.setRadian(newyaw);
-
-    // if (!agents_initialized_ || dt < 0.008) {
-    //   printf("[agentManager.updatePosition] NOT UPDATING agent id:%i,
-    //   dt:%.3f\n",
-    //          id, dt);
-    //   return;
-    // }
-
-    // printf("[agentManager.updatePosition] UPDATING agent id:%i, dt:%.3f\n", id,
-    //        dt);
-
-    // printf(
-    //     "[agentManager.updatePosition] %s time:%.5f PREVpos x:%.3f, "
-    //     "y:%.3f, th:%.3f, lv:%.3f, av:%.3f, velx:%.3f, vely:%.3f\n",
-    //     agents_[id].name.c_str(), dt, agents_[id].sfmAgent.position.getX(),
-    //     agents_[id].sfmAgent.position.getY(),
-    //     agents_[id].sfmAgent.yaw.toRadian(),
-    //     agents_[id].sfmAgent.linearVelocity,
-    //     agents_[id].sfmAgent.angularVelocity,
-    //     agents_[id].sfmAgent.velocity.getX(),
-    //     agents_[id].sfmAgent.velocity.getY());
-
-    // printf("[AgentManager.UpdatePosition]\t %s Forces. global:%.4f, goal:%.4f
-    // "
-    //        "soc:%.4f, "
-    //        "obs:%.4f \n",
-    //        agents_[id].name.c_str(),
-    //        agents_[id].sfmAgent.forces.globalForce.norm(),
-    //        agents_[id].sfmAgent.forces.desiredForce.norm(),
-    //        agents_[id].sfmAgent.forces.socialForce.norm(),
-    //        agents_[id].sfmAgent.forces.obstacleForce.norm());
-
-    sfm::SFM.updatePosition(agents_[id].sfmAgent, dt);
-    // step_count2 = 1;
-    // double newyaw = atan2(agents_[id].sfmAgent.forces.globalForce.getY(),
-    //                       agents_[id].sfmAgent.forces.globalForce.getX());
-    // agents_[id].sfmAgent.yaw.setRadian(newyaw);
-
-    // printf(
-    //     "[agentManager.updatePosition] %s NEWpos x:%.3f, y:%.3f, "
-    //     "th:%.3f, lv:%.3f, av:%.3f, velx: %.3f, vely:%.3f\n",
-    //     agents_[id].name.c_str(), agents_[id].sfmAgent.position.getX(),
-    //     agents_[id].sfmAgent.position.getY(),
-    //     agents_[id].sfmAgent.yaw.toRadian(),
-    //     agents_[id].sfmAgent.linearVelocity,
-    //     agents_[id].sfmAgent.angularVelocity,
-    //     agents_[id].sfmAgent.velocity.getX(),
-    //     agents_[id].sfmAgent.velocity.getY());
-
-    // if (!agents_[id].sfmAgent.goals.empty()) {
-    //   printf("[agentManager.updatePosition] id:%i Current goal x:%.2f, y:
-    //   %.2f\n",
-    //          id, agents_[id].sfmAgent.goals.front().center.getX(),
-    //          agents_[id].sfmAgent.goals.front().center.getY());
-    // }
-  }
-
-} // namespace hunav
+}

@@ -233,6 +233,18 @@ namespace hunav
     return utils::Vector2d(robot_.sfmAgent.position.getX(), robot_.sfmAgent.position.getY());
   }
 
+  void AgentManager::gesture(int id, bool wait)
+  {
+    if (wait==true)
+    {
+      agents_[id].gesture = 1;
+    }
+    else
+    {
+      agents_[id].gesture = 0;
+    }
+  }
+
   void AgentManager::avoidRobot(int id, double dt)
   {
     std::lock_guard<std::mutex> guard(mutex_);

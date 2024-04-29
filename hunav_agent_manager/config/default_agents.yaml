@@ -12,7 +12,7 @@ hunav_loader:
       id: 1
       skin: 0
       behavior: 4
-      group_id: -1
+      group_id: 1
       max_vel: 1.5
       radius: 0.4
       init_pose:
@@ -42,7 +42,7 @@ hunav_loader:
       id: 2
       skin: 4
       behavior: 6
-      group_id: -1
+      group_id: 1
       max_vel: 1.5
       radius: 0.4
       init_pose:
@@ -72,7 +72,7 @@ hunav_loader:
       id: 3
       skin: 3
       behavior: 5
-      group_id: -1
+      group_id: 2
       max_vel: 1.5
       radius: 0.4
       init_pose:
@@ -102,7 +102,7 @@ hunav_loader:
       id: 4
       skin: 2
       behavior: 2
-      group_id: -1
+      group_id: 2
       max_vel: 1.5
       radius: 0.4
       init_pose:
@@ -132,7 +132,7 @@ hunav_loader:
       id: 5
       skin: 1
       behavior: 5
-      group_id: -1
+      group_id: 2
       max_vel: 1.5
       radius: 0.4
       init_pose:

@@ -97,7 +97,6 @@ class HunavEvaluatorNode(Node):
         self.robot_sub
         # Subscribe to the robot goal to add it to the robot state
         self.goal_sub = self.create_subscription(PoseStamped, 'goal_pose', self.goal_callback, 1)
-        self.goal_sub
 
 
     def human_callback(self, msg):

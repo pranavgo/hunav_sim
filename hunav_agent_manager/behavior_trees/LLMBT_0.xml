@@ -1,0 +1,15 @@
+<root main_tree_to_execute = "ResponsiveFollowTree">
+    <BehaviorTree ID="ResponsiveFollowTree">
+        <Fallback name="ResponsiveFollowFallback">
+            <Sequence name="RobotWaitSequence">
+                <RobotSays agent_id="{id}" message="1" />
+                <MakeGesture agent_id="{id}" message="0" />
+            </Sequence>
+            <Sequence name="RobotProceedSequence">
+                <RobotSays agent_id="{id}" message="2" />
+                <CuriousNav agent_id="{id}" time_step="{dt}" />
+            </Sequence>
+            <CuriousNav agent_id="{id}" time_step="{dt}" />
+        </Fallback>
+    </BehaviorTree>
+</root>

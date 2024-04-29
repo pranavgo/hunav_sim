@@ -1,0 +1,37 @@
+<root main_tree_to_execute = "WatchRobotMoveTree">
+
+    <TreeNodesModel>
+        <Action ID="RegularNav">
+            <input_port name="agent_id" type="int">identifier of the agent</input_port>
+            <input_port name="t" type="int">time step in seconds to compute movement</input_port>
+        </Action>
+        <Condition ID="IsRobotVisible">
+            <input_port name="agent_id" type="int">identifier of the agent</input_port>
+            <input_port name="distance" type="double">visible distance</input_port>
+        </Condition>
+        <Condition ID="TimeExpiredCondition">
+            <input_port name="seconds" type="int">duration of the timer in seconds</input_port>
+            <input_port name="ts" type="double">time step to be accumulated</input_port>
+            <input_port name="only_once" type="bool">boolean to indicate if the timer must be reset at the end or not</input_port>
+        </Condition>
+        <Condition ID="HasRobotMoved">
+            <input_port name="agent_id" type="int">identifier of the agent</input_port>
+        </Condition>
+    </TreeNodesModel>
+
+    <BehaviorTree ID="WatchRobotMoveTree">
+        <Fallback name="WatchRobot">
+            <Sequence name="CheckRobotMovement">
+                <IsRobotVisible agent_id="{id}" distance="10.0" />
+                <Sequence name="MonitorMovement">
+                    <TimeExpiredCondition seconds="5" ts="{dt}" only_once="true" />
+                    <Inverter>
+                        <HasRobotMoved agent_id="{id}" />
+                    </Inverter>
+                </Sequence>
+                <RegularNav agent_id="{id}" t="{dt}" />
+            </Sequence>
+            <RegularNav agent_id="{id}" t="{dt}" />
+        </Fallback>
+    </BehaviorTree>
+</root>

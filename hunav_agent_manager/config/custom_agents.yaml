@@ -1,0 +1,52 @@
+hunav_loader:
+  ros__parameters:
+    agent0:
+      behavior: 7
+      cyclic_goals: false
+      g1:
+        h: 1.25
+        x: 2.3000000000000007
+        y: 8.8
+      g2:
+        h: 1.25
+        x: 5.050000000000001
+        y: 4.699999999999999
+      goal_radius: 0.3
+      goals:
+      - g1
+      - g2
+      group_id: -1
+      id: 0
+      init_pose:
+        h: 0.0
+        x: -0.6499999999999995
+        y: 8.65
+        z: 1.25
+      max_vel: 1.5
+      radius: 0.4
+      skin: 0
+    agent1:
+      behavior: 8
+      cyclic_goals: false
+      g1:
+        h: 1.25
+        x: -0.6499999999999995
+        y: 8.65
+      goal_radius: 0.3
+      goals:
+      - g1
+      group_id: 0
+      id: 1
+      init_pose:
+        h: 0.0
+        x: 2.3000000000000007
+        y: 8.8
+        z: 1.25
+      max_vel: 1.5
+      radius: 0.4
+      skin: 0
+    agents:
+    - agent0
+    - agent1
+    map: Warehouse
+    publish_people: true

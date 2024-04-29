@@ -3,35 +3,14 @@
 #define HUNAV_BEHAVIORS__AGENT_MANAGER_HPP_
 
 #include "rclcpp/rclcpp.hpp"
-// #include <ament_index_cpp/get_package_prefix.hpp>
-// #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-//#include "nav_msgs/msg/OccupancyGrid.hpp"
-// WATCH OUT! ALTOUGH THE NAME OF MESSAGE FILES HAVE
-// CAPITAL LETTER (e.g. Agent and IsRobotVisible) THE
-// FILES GENERATED FROM MESSAGE GENERATION ARE SNAKE CASE!
-// ('Agent' goes to 'agent', and 'IsRobotVisible' goes to 'is_robot_visible')
 #include "hunav_msgs/msg/agent.hpp"
 #include "hunav_msgs/msg/agents.hpp"
-//#include "hunav_msgs/srv/is_robot_visible.hpp"
-// #include "hunav_msgs/srv/compute_agents.hpp"
-
-// // Behavior Trees
-// #include "behaviortree_cpp_v3/behavior_tree.h"
-// #include "behaviortree_cpp_v3/bt_factory.h"
-// #include "behaviortree_cpp_v3/loggers/bt_cout_logger.h"
-// #include "behaviortree_cpp_v3/loggers/bt_file_logger.h"
-// #include "behaviortree_cpp_v3/loggers/bt_minitrace_logger.h"
-// #ifdef ZMQ_FOUND
-// #include "behaviortree_cpp_v3/loggers/bt_zmq_publisher.h"
-// #endif
-
 #include <iostream>
-//#include <memory>
 #include <chrono>
-#include <math.h> /* fabs */
+#include <math.h> 
 #include <mutex>
 #include <string>
 
@@ -44,7 +23,8 @@ struct agent {
   std::string name;
   int type;
   int behavior;
-  int behavior_state;
+  int behavior_state; 
+  int gesture;
   sfm::Agent sfmAgent;
 };
 
@@ -201,9 +181,14 @@ public:
    * @param dt time to compute the agent's movement
    */
   void blockRobot(int id, double dt);
-
+  void makeGesture(int id, int gesture);
   bool goalReached(int id);
+  bool robotSays(int id, int msg);
   bool updateGoal(int id);
+
+  //CUSTOM FUNCTIONS FROM LLM
+  utils::Vector2d getRobotPosition();
+  utils::Vector2d getRobotVelocity();
 
   int step_count;
   int step_count2;
@@ -238,37 +223,19 @@ public:
   }
 
 protected:
-  // std::vector<bool> agent_status_;
-  // std::unordered_map<int, bool> agents_computed_;
-  // int status_;
   bool agents_received_;
   bool robot_received_;
   bool agents_initialized_;
   bool robot_initialized_;
   std::mutex mutex_;
-  // std::vector<hunav_msgs::msg::Agent> agents_;
-  // std::vector<sfm::Agent> sfm_agents_;
   std::unordered_map<int, agent> agents_;
-  // hunav_msgs::msg::Agent robot_;
   agent robot_;
   std_msgs::msg::Header header_;
-  // sfm::Agent sfm_robot_;
   float max_dist_view_;
   float max_dist_view_squared_;
   double time_step_secs_;
   rclcpp::Time prev_time_;
-  // rclcpp::Clock::SharedPtr clock_;
-
-  // std::string pkg_shared_tree_dir_;
-  // std::vector<BT::Tree> trees_;
-
-  // // Topic subscriptions
-  // rclcpp::Subscription<hunav_msgs::msg::Agents>::SharedPtr agents_sub_;
-
-  // // Services provided
-  // rclcpp::Service<hunav_msgs::srv::ComputeAgents>::SharedPtr
-  // agents_srv_;
 };
 
-} // namespace hunav
-#endif // HUNAV_BEHAVIORS__AGENT_MANAGER_HPP_
+} 
+#endif 

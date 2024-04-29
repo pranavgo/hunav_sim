@@ -1,0 +1,22 @@
+<root main_tree_to_execute = "BoxObstacleTree">
+    <include path="BTRegularNav.xml"/>
+    <BehaviorTree ID="BoxObstacleTree">
+        <Fallback name="VisibilityAndCommandCheck">
+            <Sequence name="StopIfCommandedOrBlocked">
+                <Fallback name="CheckVisibilityAndMessage">
+                    <RobotSays agent_id="{id}" message="1"/>
+                    <Inverter>
+                        <IsRobotVisible agent_id="{id}" distance="1.0"/>
+                    </Inverter>
+                </Fallback>
+                <MakeGesture agent_id="{id}" message="0"/>
+            </Sequence>
+            <Sequence name="ContinueMoving">
+                <Inverter>
+                    <IsGoalReached agent_id="{id}"/>
+                </Inverter>
+                <RegularNav agent_id="{id}" time_step="{dt}"/>
+            </Sequence>
+        </Fallback>
+    </BehaviorTree>
+</root>

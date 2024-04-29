@@ -8,7 +8,7 @@
 
 #include <people_msgs/msg/people.hpp>
 
-#include "hunav_agent_manager/bt_functions.hpp"
+#include "hunav_agent_manager/extended_bt_functions.hpp"
 
 #include "hunav_msgs/msg/agent.hpp"
 #include "hunav_msgs/msg/agents.hpp"
@@ -42,6 +42,7 @@ public:
   ~BTnode();
 
   // void registerBTNodes(BT::BehaviorTreeFactory &factory);
+  void registerPrimaryBTNodes();
   void registerBTNodes();
 
 protected:
@@ -176,7 +177,7 @@ protected:
   rclcpp::Service<hunav_msgs::srv::ResetAgents>::SharedPtr reset_srv_;
 
   bool initialized_;
-  BTfunctions btfunc_;
+  BTfunctionsExt btfunc_;
   std::string pkg_shared_tree_dir_;
   // std::vector<BT::Tree> trees_;
   std::unordered_map<int, BT::Tree> trees_;

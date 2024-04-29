@@ -27,23 +27,15 @@ TimeExpiredCondition::TimeExpiredCondition(const std::string &condition_name,
 }
 
 BT::NodeStatus TimeExpiredCondition::tick() {
-  //   if (status() == BT::NodeStatus::IDLE) {
-  //     // start_ = node_->now();
-  //     accum_ = 0.0;
-  //     return BT::NodeStatus::FAILURE;
-  //   }
   getInput("seconds", period_);
   getInput("only_once", only_once_);
   getInput("ts", dt_);
 
   // Determine how long its been since we've started this iteration
-  // auto elapsed = node_->now() - start_;
   accum_ += dt_;
 
   // Now, get that in seconds
-  // auto seconds = elapsed.seconds();
 
-  // if (seconds < period_) {
   if (accum_ < period_) {
     // std::cout << std::endl
     //           << "TimeExpiredCondition dt: " << dt_ << " accum: " << accum_
@@ -66,10 +58,4 @@ BT::NodeStatus TimeExpiredCondition::tick() {
   return BT::NodeStatus::SUCCESS;
 }
 
-} // namespace hunav
-
-// #include "behaviortree_cpp_v3/bt_factory.h"
-// BT_REGISTER_NODES(factory) {
-//   factory.registerNodeType<hunav_agent_manager::TimeExpiredCondition>(
-//       "TimeExpired");
-// }
+}

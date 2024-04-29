@@ -1,4 +1,4 @@
-#include "hunav_agent_manager/agent_manager.hpp"
+#include "hunav_agent_manager/extended_agent_manager.hpp"
 
 #include "rclcpp/rclcpp.hpp"
 #include <ament_index_cpp/get_package_prefix.hpp>
@@ -54,6 +54,7 @@ public:
   }
 
   hunav_msgs::msg::Agents getUpdatedAgents() {
+    
     return agent_manager_.getUpdatedAgentsMsg();
   }
   hunav_msgs::msg::Agent getUpdatedAgent(int id) {
@@ -69,7 +70,12 @@ public:
 
   // BT Conditions
   BT::NodeStatus robotVisible(BT::TreeNode &self);
+  BT::NodeStatus robotSays(BT::TreeNode &self);
   BT::NodeStatus goalReached(BT::TreeNode &self);
+  BT::NodeStatus makeGesture(BT::TreeNode &self);
+
+  //<NEW BT CONDITION>
+
 
   // BT Actions to be registered with SimpleActionNode
   BT::NodeStatus updateGoal(BT::TreeNode &self);
@@ -78,14 +84,11 @@ public:
   BT::NodeStatus scaredNav(BT::TreeNode &self);
   BT::NodeStatus curiousNav(BT::TreeNode &self);
   BT::NodeStatus threateningNav(BT::TreeNode &self);
-  // the impassive behavior is taken into account
-  // in the ComputeForces method, by adding the robot
-  // to the agent's obstacles. So we do not need to
-  // implement the method.
-  // BT::NodeStatus impassiveNav(BT::TreeNode &self);
 
-private:
-  AgentManager agent_manager_;
+  //<NEW BT ACTION>
+
+protected:
+  AgentManagerExt agent_manager_;
 };
 
 } // namespace hunav

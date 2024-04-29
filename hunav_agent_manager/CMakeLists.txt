@@ -23,7 +23,7 @@ include_directories(
   /usr/local/include #to find lightsfm just in case
 )
 
-add_executable(hunav_agent_manager src/agent_manager_node.cpp src/agent_manager.cpp src/time_expired_condition.cpp src/bt_functions.cpp src/bt_node.cpp)
+add_executable(hunav_agent_manager src/agent_manager_node.cpp src/agent_manager.cpp src/time_expired_condition.cpp src/bt_functions.cpp src/extended_bt_functions.cpp src/bt_node.cpp src/extended_bt_node.cpp src/extended_agent_manager.cpp)
 ament_target_dependencies(hunav_agent_manager rclcpp hunav_msgs people_msgs geometry_msgs visualization_msgs nav2_behavior_tree tf2 tf2_ros behaviortree_cpp_v3)
 
 

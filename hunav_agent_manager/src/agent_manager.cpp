@@ -24,7 +24,6 @@ namespace hunav
     move = false;
     printf("[AgentManager.init] initialized \n");
   }
-
   float AgentManager::robotSquaredDistance(int id)
   {
     float xa = agents_[id].sfmAgent.position.getX(); // position.position.x;
@@ -34,7 +33,7 @@ namespace hunav
     return (xr - xa) * (xr - xa) + (yr - ya) * (yr - ya);
   }
 
-  bool AgentManager::lineOfSight(int id)
+  bool AgentManager::lineOfSight(int id, double tolerance)
   {
     float ax = agents_[id].sfmAgent.position.getX();
     float ay = agents_[id].sfmAgent.position.getY();
@@ -44,25 +43,28 @@ namespace hunav
     float nrx = (rx - ax) * cos(yaw) + (ry - ay) * sin(yaw);
     float nry = -(rx - ax) * sin(yaw) + (ry - ay) * cos(yaw);
     float rangle = atan2(nry, nrx);
+    //std::cout<<"YOUR ANGLE IS"<<rangle<<std::endl;
 
-    if (abs(rangle) > (M_PI / 2.0 + 0.17))
+
+    if (abs(rangle) > (tolerance))
     {
       return false;
     }
     else
     {
+      //std::cout<<"robot is in line of sight";
       return true;
     }
   }
 
-  bool AgentManager::isRobotVisible(int id, double dist)
+  bool AgentManager::isRobotVisible(int id, double dist, double tolerance)
   {
     std::lock_guard<std::mutex> guard(mutex_);
     float squared_dist = robotSquaredDistance(id);
-    std::cout<<"Robot Distance: "<<squared_dist<<std::endl;
-    if (squared_dist <= (dist * dist))
+    //std::cout<<"Robot Distance: "<<squared_dist<<std::endl;
+    if (sqrt(squared_dist) <= (dist))
     {
-      return lineOfSight(id);
+      return lineOfSight(id, tolerance);
     }
     else
     {
@@ -70,6 +72,22 @@ namespace hunav
     }
   }
 
+
+  bool AgentManager::isRobotNearby(int id, double dist)
+  {
+    std::lock_guard<std::mutex> guard(mutex_);
+    float squared_dist = robotSquaredDistance(id);
+    std::cout<<"Robot Distance: "<<squared_dist<<std::endl;
+    if (sqrt(squared_dist) <= (dist))
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+  
   utils::Vector2d AgentManager::getRobotVelocity()
   {
     std::lock_guard<std::mutex> guard(mutex_);
@@ -77,8 +95,19 @@ namespace hunav
     return utils::Vector2d(robot_.sfmAgent.velocity.getX(), robot_.sfmAgent.velocity.getY());
   }
 
+  bool AgentManager::hasRobotMoved(int id)
+  {
 
-  void AgentManager::lookAtTheRobot(int id)
+    std::lock_guard<std::mutex> guard(mutex_);
+    // Robot position
+    if (robot_.sfmAgent.velocity.getX()<0.1 && robot_.sfmAgent.velocity.getY()<0.1){
+      return false;
+    }
+    return true;
+    
+  }
+  
+  void AgentManager::lookAtRobot(int id)
   {
 
     std::lock_guard<std::mutex> guard(mutex_);
@@ -111,8 +140,7 @@ namespace hunav
     }
     agents_[id].behavior_state = 1;
   }
-
-  void AgentManager::approximateRobot(int id, double dt)
+  void AgentManager::followRobot(int id, double dt)
   {
 
     std::lock_guard<std::mutex> guard(mutex_);
@@ -126,22 +154,6 @@ namespace hunav
 
     // if the agent is close to the robot,
     // stop and look at the robot
-    if (dist <= 1.5)
-    {
-      // Agent position
-      float ax = agents_[id].sfmAgent.position.getX();
-      float ay = agents_[id].sfmAgent.position.getY();
-      float ah = agents_[id].sfmAgent.yaw.toRadian();
-      // Transform robot position to agent coords system
-      float nrx = (rx - ax) * cos(ah) + (ry - ay) * sin(ah);
-      float nry = -(rx - ax) * sin(ah) + (ry - ay) * cos(ah);
-      utils::Angle robotYaw; // = utils::Angle::fromRadian(atan2(nry, nrx));
-      robotYaw.setRadian(atan2(nry, nrx));
-
-      agents_[id].sfmAgent.yaw = agents_[id].sfmAgent.yaw + robotYaw;
-    }
-    else
-    {
 
       // Change the agent goal
       sfm::Goal g;
@@ -153,6 +165,7 @@ namespace hunav
       // move slowly when close
       float ini_desired_vel = agents_[id].sfmAgent.desiredVelocity;
       agents_[id].sfmAgent.desiredVelocity = 1.8 * (dist / max_dist_view_);
+      std::cout<<"-------------------"<<agents_[id].sfmAgent.desiredVelocity<<std::endl;
       // recompute forces
       computeForces(id);
       // update position
@@ -161,7 +174,6 @@ namespace hunav
       // ends in the next iteration
       agents_[id].sfmAgent.goals.pop_front();
       agents_[id].sfmAgent.desiredVelocity = ini_desired_vel;
-    }
   }
 
   void AgentManager::blockRobot(int id, double dt)
@@ -223,7 +235,7 @@ namespace hunav
   void AgentManager::makeGesture(int id, int gesture = 1)
   {
     std::lock_guard<std::mutex> guard(mutex_);
-    std::cout<< "Agent " << id << " is making gesture " << gesture << std::endl;
+    //std::cout<< "Agent " << id << " is making gesture " << gesture << std::endl;
     agents_[id].gesture = gesture; 
   }
 
@@ -232,20 +244,8 @@ namespace hunav
     std::lock_guard<std::mutex> guard(mutex_);
     return utils::Vector2d(robot_.sfmAgent.position.getX(), robot_.sfmAgent.position.getY());
   }
-
-  void AgentManager::gesture(int id, bool wait)
-  {
-    if (wait==true)
-    {
-      agents_[id].gesture = 1;
-    }
-    else
-    {
-      agents_[id].gesture = 0;
-    }
-  }
-
-  void AgentManager::avoidRobot(int id, double dt)
+  
+  void AgentManager::givewaytoRobot(int id, double dt)
   {
     std::lock_guard<std::mutex> guard(mutex_);
 
@@ -259,11 +259,21 @@ namespace hunav
     // We add an extra repulsive force from the robot
     utils::Vector2d minDiff =
         agents_[id].sfmAgent.position - robot_.sfmAgent.position;
+    utils::Vector2d minDiff_orth;
+    minDiff_orth.setX(-minDiff.normalized().getY());
+    minDiff_orth.setY(minDiff.normalized().getX());
+
+        agents_[id].sfmAgent.position - robot_.sfmAgent.position;
     double distance = minDiff.norm() - agents_[id].sfmAgent.radius;
 
     utils::Vector2d Scaryforce =
         20.0 * (agents_[id].sfmAgent.params.forceSigmaObstacle / distance) *
-        minDiff.normalized();
+        minDiff_orth.normalized();
+
+    // utils::Vector2d Scaryforce = -1.0 * agents_[id].sfmAgent.params.forceFactorObstacle *
+    //       std::exp(-distance / agents_[id].sfmAgent.params.forceSigmaObstacle) *
+    //       minDiff.normalized();
+    
     agents_[id].sfmAgent.forces.globalForce += Scaryforce;
 
     // update position
@@ -273,9 +283,81 @@ namespace hunav
     agents_[id].sfmAgent.desiredVelocity = init_vel;
   }
 
+    void AgentManager::avoidRobot(int id, double dt)
+  {
+    std::lock_guard<std::mutex> guard(mutex_);
+
+    agents_[id].behavior_state = 1;
+
+    // we decrease the maximum velocity
+    double init_vel = agents_[id].sfmAgent.desiredVelocity;
+    agents_[id].sfmAgent.desiredVelocity = 0.6;
+    computeForces(id);
+
+    // We add an extra repulsive force from the robot
+    utils::Vector2d minDiff =
+        agents_[id].sfmAgent.position - robot_.sfmAgent.position;
+
+        agents_[id].sfmAgent.position - robot_.sfmAgent.position;
+    double distance = minDiff.norm() - agents_[id].sfmAgent.radius;
+
+    utils::Vector2d Scaryforce =
+        20.0 * (agents_[id].sfmAgent.params.forceSigmaObstacle / distance) *
+        minDiff.normalized();
+    
+    agents_[id].sfmAgent.forces.globalForce += Scaryforce;
+
+    // update position
+    sfm::SFM.updatePosition(agents_[id].sfmAgent, dt);
+
+    // restore desired vel
+    agents_[id].sfmAgent.desiredVelocity = init_vel;
+  }
+
+  // void AgentManager::ignoreRobot(int id, double dt)
+  // {
+  //   std::lock_guard<std::mutex> guard(mutex_);
+
+  //   agents_[id].behavior_state = 1;
+
+  //   // we decrease the maximum velocity
+  //   double init_vel = agents_[id].sfmAgent.desiredVelocity;
+  //   agents_[id].sfmAgent.desiredVelocity = 0.6;
+  //   computeForces(id);
+
+  //   // We add an extra repulsive force from the robot
+  //   utils::Vector2d minDiff =
+  //       agents_[id].sfmAgent.position - robot_.sfmAgent.position;
+  //   double distance = minDiff.norm() - agents_[id].sfmAgent.radius;
+
+  //   utils::Vector2d Scaryforce =
+  //       20.0 * (agents_[id].sfmAgent.params.forceSigmaObstacle / distance) *
+  //       minDiff.normalized();
+  //   agents_[id].sfmAgent.forces.globalForce += Scaryforce;
+
+  //   // update position
+  //   sfm::SFM.updatePosition(agents_[id].sfmAgent, dt);
+
+  //   // restore desired vel
+  //   agents_[id].sfmAgent.desiredVelocity = init_vel;
+  // }
+
+
+
+
   bool AgentManager::goalReached(int id)
   {
     std::lock_guard<std::mutex> guard(mutex_);
+    // if (agents_[id].sfmAgent.goals.empty()){
+    //   std::cout<<"~~~~~~~~~~GOAL REACHED IS TRUE AND LIST IS EMPTY~~~~~~~~~~~~~~"<<std::endl;
+    //   for (auto b : agents_[id].sfmAgent.goals){
+    //     std::cout<<"GOAL:"<< b.center.getX()<<"_"<< b.center.getY();
+    //   }
+    //   std::cout<<"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"<<std::endl;
+    //   // printf("Agent %s goal reached!", agents_[id].name.c_str());
+    //   return true;
+    //}
+
     if (!agents_[id].sfmAgent.goals.empty() &&
         (agents_[id].sfmAgent.goals.front().center -
          agents_[id].sfmAgent.position)
@@ -284,8 +366,9 @@ namespace hunav
       // printf("Agent %s goal reached!", agents_[id].name.c_str());
       return true;
     }
-    else
+    else{
       return false;
+    }
   }
 
   bool AgentManager::robotSays(int id, int msg){
@@ -301,13 +384,17 @@ namespace hunav
   {
     std::lock_guard<std::mutex> guard(mutex_);
 
-    // printf("Updating goal for agent %i\n\n", id);
-    sfm::Goal g = agents_[id].sfmAgent.goals.front();
-    agents_[id].sfmAgent.goals.pop_front();
+    printf("Updating goal for agent %i\n\n", id); 
+    sfm::Goal g = agents_[id].sfmAgent.goals.front();    
+    if (agents_[id].sfmAgent.goals.size() != 1){
+      agents_[id].sfmAgent.goals.pop_front();
+    }
+
+    //std::cout<<"Next Goal:"<<agents_[id].sfmAgent.goals.back().center.getX()<<","<<agents_[id].sfmAgent.goals.back().center.getY()<<"\n";
+
     if (agents_[id].sfmAgent.cyclicGoals)
     {
-      agents_[id].sfmAgent.goals.push_back(g);
-    }
+      agents_[id].sfmAgent.goals.push_back(g);    }  
     return true;
   }
   
@@ -315,6 +402,7 @@ namespace hunav
   {
     std::lock_guard<std::mutex> guard(mutex_);
     agents_[id].behavior_state = 0;
+
     sfm::SFM.updatePosition(agents_[id].sfmAgent, dt);
   }
 
@@ -370,6 +458,9 @@ namespace hunav
              agents_[ag.sfmAgent.id].sfmAgent.position.getX(),
              agents_[ag.sfmAgent.id].sfmAgent.position.getY(),
              agents_[ag.sfmAgent.id].sfmAgent.yaw.toRadian());
+      for (auto g : agents_[ag.sfmAgent.id].sfmAgent.goals){
+        printf("\t\tgoal x:%.2f, y:%.2f\n", g.center.getX(), g.center.getY());
+      }
     }
     agents_initialized_ = true;
     printf("SFM Agents initialized\n");
@@ -380,6 +471,7 @@ namespace hunav
   {
 
     robot_.name = msg->name;
+    robot_.gesture = 2;
     robot_.type = msg->type;
     robot_.behavior = msg->behavior;
     robot_.sfmAgent.id = msg->id;

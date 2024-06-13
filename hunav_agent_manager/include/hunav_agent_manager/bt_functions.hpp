@@ -70,9 +70,11 @@ public:
 
   // BT Conditions
   BT::NodeStatus robotVisible(BT::TreeNode &self);
+  BT::NodeStatus robotNearby(BT::TreeNode &self);
   BT::NodeStatus robotSays(BT::TreeNode &self);
   BT::NodeStatus goalReached(BT::TreeNode &self);
   BT::NodeStatus makeGesture(BT::TreeNode &self);
+  BT::NodeStatus robotBlocking(BT::TreeNode &self);
 
   //<NEW BT CONDITION>
 
@@ -80,10 +82,12 @@ public:
   // BT Actions to be registered with SimpleActionNode
   BT::NodeStatus updateGoal(BT::TreeNode &self);
   BT::NodeStatus regularNav(BT::TreeNode &self);
-  BT::NodeStatus surprisedNav(BT::TreeNode &self);
-  BT::NodeStatus scaredNav(BT::TreeNode &self);
-  BT::NodeStatus curiousNav(BT::TreeNode &self);
-  BT::NodeStatus threateningNav(BT::TreeNode &self);
+  BT::NodeStatus lookAtRobot(BT::TreeNode &self);
+  BT::NodeStatus robotMoved(BT::TreeNode &self);
+  BT::NodeStatus avoidRobot(BT::TreeNode &self);
+  BT::NodeStatus givewaytoRobot(BT::TreeNode &self);
+  BT::NodeStatus followRobot(BT::TreeNode &self);
+  BT::NodeStatus blockRobot(BT::TreeNode &self);
 
   //<NEW BT ACTION>
 

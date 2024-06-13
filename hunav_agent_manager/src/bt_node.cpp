@@ -104,12 +104,25 @@ namespace hunav
         visibleports);
 
     factory_.registerSimpleCondition(
+        "IsRobotNearby", std::bind(&BTfunctionsExt::robotNearby, &btfunc_, _1),
+        visibleports);
+
+    factory_.registerSimpleCondition(
         "IsGoalReached", std::bind(&BTfunctionsExt::goalReached, &btfunc_, _1),
         simple_port);
     
     factory_.registerSimpleCondition(
       "RobotSays",std::bind(&BTfunctionsExt::robotSays, &btfunc_, _1),
       portsMsg);
+
+    factory_.registerSimpleCondition(
+        "RobotMoved", std::bind(&BTfunctionsExt::robotMoved, &btfunc_, _1),
+        simple_port);
+
+    factory_.registerSimpleCondition(
+        "IsRobotBlocking", std::bind(&BTfunctionsExt::robotBlocking, &btfunc_, _1),
+        visibleports);
+
       
     // Register the actions
     
@@ -126,16 +139,20 @@ namespace hunav
         "RegularNav", std::bind(&BTfunctionsExt::regularNav, &btfunc_, _1),
         portsNav);
     factory_.registerSimpleAction(
-        "SurprisedNav", std::bind(&BTfunctionsExt::surprisedNav, &btfunc_, _1),
+        "LookAtRobot", std::bind(&BTfunctionsExt::lookAtRobot, &btfunc_, _1),
+        simple_port);
+
+    factory_.registerSimpleAction(
+        "FollowRobot", std::bind(&BTfunctionsExt::followRobot, &btfunc_, _1),
         portsNav);
     factory_.registerSimpleAction(
-        "CuriousNav", std::bind(&BTfunctionsExt::curiousNav, &btfunc_, _1),
+        "AvoidRobot", std::bind(&BTfunctionsExt::avoidRobot, &btfunc_, _1),
         portsNav);
     factory_.registerSimpleAction(
-        "ScaredNav", std::bind(&BTfunctionsExt::scaredNav, &btfunc_, _1),
+        "GiveWaytoRobot", std::bind(&BTfunctionsExt::givewaytoRobot, &btfunc_, _1),
         portsNav);
     factory_.registerSimpleAction(
-        "ThreateningNav", std::bind(&BTfunctionsExt::threateningNav, &btfunc_, _1),
+        "BlockRobot", std::bind(&BTfunctionsExt::blockRobot, &btfunc_, _1),
         portsNav);
 
     //<REGISTER NEW NODES>

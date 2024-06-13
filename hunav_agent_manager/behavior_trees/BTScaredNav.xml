@@ -27,7 +27,7 @@
                 <Inverter>
                     <TimeExpiredCondition seconds="40.0" ts="{dt}" only_once="False" />
                 </Inverter>
-                <ScaredNav agent_id="{id}" time_step="{dt}" />
+                <AvoidRobot agent_id="{id}" time_step="{dt}" />
             </Sequence>
             <Sequence name="RegNav">
                 <SetBlackboard output_key="agentid" value="{id}" />

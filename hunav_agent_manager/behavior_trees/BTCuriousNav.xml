@@ -1,7 +1,7 @@
 <root main_tree_to_execute = "CuriousNavTree">
 
     <TreeNodesModel>
-        <Action ID="CuriousNav">
+        <Action ID="FollowRobot">
             <input_port name="agent_id" type="int">identifier of the agent</input_port>
             <input_port name="time_step" type="double">time step in seconds to compute movement</input_port>
         </Action>
@@ -24,7 +24,7 @@
                 <Inverter>
                     <TimeExpiredCondition seconds="30.0" ts="{dt}" only_once="True" />
                 </Inverter>
-                <CuriousNav agent_id="{id}" time_step="{dt}" />
+                <FollowRobot agent_id="{id}" time_step="{dt}" />
             </Sequence>
             <Sequence name="RegNav">
                 <SetBlackboard output_key="agentid" value="{id}" />

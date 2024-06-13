@@ -1,21 +1,15 @@
-<root main_tree_to_execute = "BoxObstacleTree">
-    <include path="BTRegularNav.xml"/>
-    <BehaviorTree ID="BoxObstacleTree">
-        <Fallback name="VisibilityAndCommandCheck">
-            <Sequence name="StopIfCommandedOrBlocked">
-                <Fallback name="CheckVisibilityAndMessage">
-                    <RobotSays agent_id="{id}" message="1"/>
-                    <Inverter>
-                        <IsRobotVisible agent_id="{id}" distance="1.0"/>
-                    </Inverter>
-                </Fallback>
-                <MakeGesture agent_id="{id}" message="0"/>
+<root main_tree_to_execute='Human2BehaviorTree'>
+    <include path='BTRegularNav.xml'/>
+    <BehaviorTree ID='Human2BehaviorTree'>
+        <Fallback name='ExcuseMeFallback'>
+            <Sequence name='GiveWaySequence'>
+                <RobotSays agent_id='{id}' message='4'/>
+                <GiveWaytoRobot agent_id='{id}' time_step='{dt}'/>
             </Sequence>
-            <Sequence name="ContinueMoving">
-                <Inverter>
-                    <IsGoalReached agent_id="{id}"/>
-                </Inverter>
-                <RegularNav agent_id="{id}" time_step="{dt}"/>
+            <Sequence name='RegNav'>
+                <SetBlackboard output_key='agentid' value='{id}'/>
+                <SetBlackboard output_key='timestep' value='{dt}'/>
+                <SubTree ID='RegularNavTree' id='agentid' dt='timestep'/>
             </Sequence>
         </Fallback>
     </BehaviorTree>

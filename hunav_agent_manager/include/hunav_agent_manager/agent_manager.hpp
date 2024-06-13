@@ -136,7 +136,7 @@ public:
    *
    * @param id int id of the desired agent (index of the agents_ array too)
    */
-  void lookAtTheRobot(int id);
+  void lookAtRobot(int id);
   /**
    * @brief check if the robot is in the field of view of the agent indicated by
    * the parameter id
@@ -146,7 +146,8 @@ public:
    * @return true if the robot is the field of view of the agent
    * @return false otherwise
    */
-  bool isRobotVisible(int id, double dist);
+  bool isRobotVisible(int id, double dist, double tolerance);
+  bool isRobotNearby(int id, double dist);
   /**
    * @brief check if the robot is in the line of sight of teh agent indicated by
    * the parameter id
@@ -155,7 +156,7 @@ public:
    * @return true if the robot is in the line of sight
    * @return false otherwise
    */
-  bool lineOfSight(int id);
+  bool lineOfSight(int id, double tolerance);
 
   /**
    * @brief change the current navigation goal of the agent and its
@@ -164,7 +165,7 @@ public:
    * @param id identifier of the agent
    * @param dt time to compute the agent's movement
    */
-  void approximateRobot(int id, double dt);
+  void followRobot(int id, double dt);
 
   /**
    * @brief the agent will try to keep more distance from the robot
@@ -173,6 +174,8 @@ public:
    * @param dt time to compute the agent's movement
    */
   void avoidRobot(int id, double dt);
+  void givewaytoRobot(int id, double dt);
+
 
   /**
    * @brief the agent will try to block the path of the robot
@@ -189,6 +192,8 @@ public:
   //CUSTOM FUNCTIONS FROM LLM
   utils::Vector2d getRobotPosition();
   utils::Vector2d getRobotVelocity();
+
+  bool hasRobotMoved(int id);
 
   int step_count;
   int step_count2;

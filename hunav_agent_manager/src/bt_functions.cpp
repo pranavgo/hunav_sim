@@ -9,7 +9,9 @@ namespace hunav
     printf("[BTfunctions.Constructor] initialized!\n");
   }
 
-  BTfunctions::~BTfunctions() {}
+BTfunctions::~BTfunctions()
+{
+}
 
   void BTfunctions::init()
   {

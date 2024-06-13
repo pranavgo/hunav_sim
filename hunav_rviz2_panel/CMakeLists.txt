@@ -19,6 +19,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(nav2_util REQUIRED)
 find_package(nav2_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(hunav_msgs REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Test Concurrent)
 find_package(rclcpp REQUIRED)
@@ -69,6 +70,7 @@ set(dependencies
   tf2
   tf2_geometry_msgs
   visualization_msgs
+  hunav_msgs
 )
 
 ament_target_dependencies(${library_name}

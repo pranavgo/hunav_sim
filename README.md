@@ -108,10 +108,20 @@ hunav_loader:
     agent1:
       id: 1
       skin: 2
-      behavior: 5
       group_id: -1
       max_vel: 1.5
       radius: 0.4
+      behavior: 
+        type: 4 # REGULAR=1, IMPASSIVE=2, SURPRISED=3, SCARED=4, CURIOUS=5, THREATENING=6
+        configuration: 0 # def: 0, custom:1, random_normal:2, random_uniform:3
+        duration: 40.0  # seg
+        once: true
+        vel: 0.6
+        dist: 0.0
+        goal_force_factor: 2.0
+        obstacle_force_factor: 10.0
+        social_force_factor: 5.0
+        other_force_factor: 20.0
       init_pose:
         x: -3.973340
         y: -8.576801
@@ -138,10 +148,20 @@ hunav_loader:
     agent2:
       id: 2
       skin: 3
-      behavior: 6
       group_id: -1
       max_vel: 1.5
       radius: 0.4
+      behavior: 
+        type: 6 
+        configuration: 2  
+        duration: 40.0  # seg
+        once: true
+        vel: 0.6
+        dist: 0.0
+        goal_force_factor: 2.0
+        obstacle_force_factor: 10.0
+        social_force_factor: 5.0
+        other_force_factor: 20.0
       init_pose:
         x: 2.924233
         y: 5.007970
@@ -177,16 +197,31 @@ The user must provide the following data under the identification name of each a
 
 * ```id```. Integer value that must be unique for each agent.
 * ```skin```. Integer value to indicate the 3d model to represent the hunav agent. Currently, it is used for the 3d models spawned in Gazebo only. It must be in the range [0-4].
-* ```behavior```. Integer value to identify one of the six available navigation behaviors:
-  * **1** - Regular
-  * **2** - Impassive
-  * **3** - Surprised
-  * **4** - Scared
-  * **5** - Curious
-  * **6** - Threatening
 * ```group_id```. Integer value to identy a walking group. It must be shared by the members of the same group. Value *-1* indicates the agent is not walking in group.  
 * ```max_vel```. The maximum velocity of the agent in m/s.
 * ```radius```. Radius in meters of the circunference that circumbscribes the agent's footprint.
+* ```behavior```. To define the behavior of the agent we have a section with different parameters:
+  * ```type```: Integer value to identify one of the six available navigation behaviors:
+    * **1** - Regular
+    * **2** - Impassive
+    * **3** - Surprised
+    * **4** - Scared
+    * **5** - Curious
+    * **6** - Threatening
+  * ```configuration```. Configuration mode of the behavior parameters.
+    * **0** - 'Default'. The indicated behavior will be configured with the default values.
+    * **1** - 'Custom'. The user will indicate the values of the behavior parameters.  
+    * **2** - 'Random - normal distribution'. The behavior parameters will be configured by following a random sampling from normal distributions centered in the default values.  
+    * **3** - 'Random - uniform distribution'. The values will be randomly extracted from bounded uniform distributions. 
+  The next parameters will be used only in case of the ```custom configuration``` mode is selected: 
+  * ```duration```. The duration [seconds] of the agent reaction to the presence of the robot. (Not applied in case of *Regular* and *Impassive* behaviors.) 
+  * ```once```. Boolean to indicate whether the reaction must be performed only once. (Not applied in case of *Regular* and *Impassive* behaviors.) 
+  * ```vel```. Only applied for the *Scared* and *Curious* behaviors. For the *Curious* behavior it indicates the velocity [m/s] of the agent while approaching the robot. In case of the *Scared* behavior, the velocity of the agent while avoiding the robot.
+  * ```dist```. Only applied for the *Curious* and *Threatening* behaviors. For the *Curious* one, the agent will stop approaching the robot at this distance to the it. 
+  * ```goal_force_factor```. This parameter is a multiplicative factor of the atractive force to the goal according to the Social Force Model. 
+  * ```obstacle_force_factor```. Multiplicative factor of the repulsive force from the obstacles according to the Social Force Model. 
+  * ```social_force_factor```. Multiplicative factor of the repulsive force from other agents according to the Social Force Model. 
+  * ```other_force_factor```. Only applied for the *Scared* behavior. Multiplicative factor of an extra respulsive force from the robot. 
 * ```init_pose```. It contains the coordinates in meters of the agent's initial position in the scenario (*x*, *y* and *z*) and also the heading in radians. 
 * ```goal_radius```. Radius in meters of the goal. This value is employed to decide when the agent has reached a goal.
 * ```cyclic_goals```. Boolean to indicate whether the final goal has been reached, the agent must be begin the goal list again. 

@@ -50,9 +50,11 @@ Example:
 
 As result, we will visualize on the map, the initial position and goals for each agent indicated in the yaml file (as can be seen in the image above). In next iterations, we will allow the user to modify the agents features and to store the new changes.  
 
-The second option allows to generate a new set of hunav agents. Each agent must have a name, behavior, skin, initial pose and goals as can be seen in the following images:
+The second option allows to generate a new set of hunav agents. Each agent must have a name, behavior, skin, initial pose and goals.
 
 ![](https://github.com/robotics-upo/hunav_sim/blob/humble/hunav_rviz2_panel/images/agent_creation.png) ![](https://github.com/robotics-upo/hunav_sim/blob/humble/hunav_rviz2_panel/images/agent_creation_2.png)
+
+The behavior can be selected from an combobox, as well as the parameter configuration. The parameters available for each behavior are showed below of the combobox for the selection of the behavior. In case of selecting a custom configuration of the behavior, the values must be introduced in the text boxes presented.     
 
 Hunav agents' initial pose and goals are stored by using the HuNav RViz tool. To do so, click the "Set initial pose" button, and then, from the tool panel, select HunavGoals.
 

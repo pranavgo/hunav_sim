@@ -7,6 +7,7 @@
         </Action>
         <Condition ID="IsRobotVisible">
             <input_port name="agent_id" type="int">identifier of the agent</input_port>
+            <input_port name="distance" type="double">distance to detect the robot</input_port>
         </Condition>
         <Condition ID="TimeExpiredCondition">
             <input_port name="seconds" type="double">duration of the timer in seconds</input_port>
@@ -20,9 +21,9 @@
     <BehaviorTree ID="SurprisedNavTree">
         <Fallback name="SurprisedFallback">
             <Sequence name="SurNav"> <!--ReactiveSequence-->
-                <IsRobotVisible agent_id="{id}" distance="4.0" />
+                <IsRobotVisible agent_id="{id}" distance="{dist}" />
                 <Inverter>
-                    <TimeExpiredCondition seconds="30.0" ts="{dt}" only_once="True" />
+                    <TimeExpiredCondition seconds="{duration}" ts="{dt}" only_once="{once}" />
                 </Inverter>
                 <SurprisedNav agent_id="{id}" time_step="{dt}" />
             </Sequence>

@@ -33,28 +33,26 @@ class QLineEdit;
 namespace hunav_rviz2_panel
 {
 
-class ActorPanel: public rviz_common::Panel, public rclcpp::Node
+class ActorPanel : public rviz_common::Panel, public rclcpp::Node
 {
-
-Q_OBJECT
+  Q_OBJECT
 public:
-
-  ActorPanel( QWidget* parent = 0 );
+  ActorPanel(QWidget* parent = 0);
   ~ActorPanel();
 
-  virtual void load(const rviz_common::Config& config );
-  virtual void save(rviz_common::Config config ) const;
+  virtual void load(const rviz_common::Config& config);
+  virtual void save(rviz_common::Config config) const;
 
 public Q_SLOTS:
 
-  void setTopic( const QString& topic );
-  
+  void setTopic(const QString& topic);
+
 protected Q_SLOTS:
 
   void addAgent();
   void saveAgents();
   void updateTopic();
-  int processMouseEvent(rviz_common::ViewportMouseEvent &event);
+  int processMouseEvent(rviz_common::ViewportMouseEvent& event);
   void onInitialPose(double x, double y, double theta, QString frame);
   void onNewGoal(double x, double y, double theta, QString frame);
   void getNewGoal();
@@ -63,21 +61,24 @@ protected Q_SLOTS:
   void closeInitialPoseWindow();
   int checkComboBox();
   int checkComboBoxSkin();
+  void checkComboBoxConf();
   void checkParserSkin(int skin);
   void parseYaml();
   void randomRGB();
-  visualization_msgs::msg::Marker createMarker(double point1_x, double point1_y, double ids, std::string marker_shape, std::string create_or_parser);
-  visualization_msgs::msg::Marker createArrowMarker(double point1_x, double point1_y, double point2_x, double point2_y, double ids);
+  visualization_msgs::msg::Marker createMarker(double point1_x, double point1_y, double ids, std::string marker_shape,
+                                               std::string create_or_parser);
+  visualization_msgs::msg::Marker createArrowMarker(double point1_x, double point1_y, double point2_x, double point2_y,
+                                                    double ids);
   void removeCurrentMarkers();
   void removeMarker(visualization_msgs::msg::Marker marker);
   void resetGoal();
-  void openFileExplorer(bool file);
+  std::string openFileExplorer(bool file);
 
 public:
-
   // QT variables
-  QLineEdit *actors;
+  QLineEdit* actors;
   QLineEdit* agent_name;
+  QLineEdit* agent_desired_vel;
   QLineEdit* coordinates;
   QLineEdit* coordinates1;
   QLineEdit* coordinates2;
@@ -85,31 +86,51 @@ public:
   // The current name of the output topic.
   QString output_topic_;
 
-  QWidget *window = nullptr;
-  QWidget *window1 = nullptr;
-  QWidget *window2 = nullptr;
-  QComboBox *behavior_combobox;
-  QComboBox *skin_combobox;
+  QWidget* window = nullptr;
+  QWidget* window1 = nullptr;
+  QWidget* window2 = nullptr;
+  QComboBox* skin_combobox;
 
-  QObject *initial_pose_connection;
-  QObject *goals_connection;
+  // agent behavior
+  QComboBox* behavior_combobox;
+  QComboBox* behavior_conf_combobox;
+  QLabel* dur;
+  QLineEdit* beh_duration;
+  QLabel* once;
+  QLineEdit* beh_once;
+  QLabel* vel;
+  QLineEdit* beh_vel;
+  QLabel* dist;
+  QLineEdit* beh_dist;
+  QLabel* gff;
+  QLineEdit* beh_gff;
+  QLabel* off;
+  QLineEdit* beh_off;
+  QLabel* sff;
+  QLineEdit* beh_sff;
+  QLabel* other;
+  QLineEdit* beh_otherff;
+
+  QObject* initial_pose_connection;
+  QObject* goals_connection;
 
   QMetaObject::Connection* conn_delete = new QMetaObject::Connection();
 
-  QPushButton *initial_pose_button;
-  QPushButton *save_button;
-  QPushButton *goals_button;
-  QPushButton *reset_goals;
+  QPushButton* initial_pose_button;
+  QPushButton* save_button;
+  QPushButton* goals_button;
+  QPushButton* reset_goals;
 
-  QVBoxLayout *topic_layout_init_pose;
-  QVBoxLayout *goals_layout;
-  QCheckBox *checkbox;
-  QLabel *goals_remaining;
-  
+  QVBoxLayout* topic_layout;
+  QVBoxLayout* topic_layout_init_pose;
+  QVBoxLayout* goals_layout;
+  QCheckBox* checkbox;
+  QLabel* goals_remaining;
+
   std::vector<YAML::Node> actors_info;
   std::vector<std::string> names;
   std::vector<std::string> point;
-  
+
   // Program logic
   bool first_actor = true;
   bool initial_pose_set = false;
@@ -134,7 +155,7 @@ public:
   std::string person_skin;
 
   // Colors for Markers
-  std::vector<double> rgb{255,0};
+  std::vector<double> rgb{ 255, 0 };
   double red;
   double green;
   double blue;
@@ -152,4 +173,4 @@ public:
   bool show_file_selector_once = true;
 };
 
-}
+}  // namespace hunav_rviz2_panel

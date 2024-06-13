@@ -27,8 +27,8 @@ add_executable(hunav_agent_manager src/agent_manager_node.cpp src/agent_manager.
 ament_target_dependencies(hunav_agent_manager rclcpp hunav_msgs people_msgs geometry_msgs visualization_msgs nav2_behavior_tree tf2 tf2_ros behaviortree_cpp_v3)
 
 
-add_executable(test_agent_manager src/test_agent_manager_node.cpp)
-ament_target_dependencies(test_agent_manager rclcpp hunav_msgs geometry_msgs tf2_geometry_msgs tf2 tf2_ros)
+#add_executable(test_agent_manager src/test_agent_manager_node.cpp)
+#ament_target_dependencies(test_agent_manager rclcpp hunav_msgs geometry_msgs tf2_geometry_msgs tf2 tf2_ros)
 
 add_executable(hunav_loader src/hunav_loader.cpp)
 ament_target_dependencies(hunav_loader rclcpp hunav_msgs)
@@ -47,7 +47,7 @@ ament_target_dependencies(hunav_loader rclcpp hunav_msgs)
 
 install(TARGETS
   hunav_agent_manager
-  test_agent_manager
+  #test_agent_manager
   hunav_loader
   DESTINATION lib/${PROJECT_NAME}
 )

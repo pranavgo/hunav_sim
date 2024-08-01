@@ -34,7 +34,6 @@ find_package(std_msgs REQUIRED)
 set(msg_files
   "msg/Agent.msg"
   "msg/Agents.msg"
-  "msg/AgentBehavior.msg"
 )
 
 set(srv_files

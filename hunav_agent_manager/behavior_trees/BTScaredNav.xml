@@ -4,12 +4,12 @@
         <Action ID="ScaredNav">
             <input_port name="agent_id" type="int">identifier of the agent</input_port>
             <input_port name="time_step" type="double">time step in seconds to compute movement</input_port>
-            <input_port name="runaway_vel" type="double">the agent velocity avoiding the robot</input_port>
-            <input_port name="scary_force_factor" type="double">weight of the repulsive force from the robot</input_port>
+            <Action ID="SaySomething">
+            
+        </Action>
         </Action>
         <Condition ID="IsRobotVisible">
             <input_port name="agent_id" type="int">identifier of the agent</input_port>
-            <input_port name="distance" type="double">distance to detect the robot</input_port>
         </Condition>
         <Condition ID="TimeExpiredCondition">
             <input_port name="seconds" type="double">duration of the timer in seconds</input_port>
@@ -22,10 +22,10 @@
 
     <BehaviorTree ID="ScaredNavTree">
         <Fallback name="ScaredFallback">
-            <Sequence name="ScaNav">
-                <IsRobotVisible agent_id="{id}" distance="{dist}" /> <!--distance="3.0"-->
+            <Sequence name="ScaNav"> <!--ReactiveSequence-->
+                <IsRobotVisible agent_id="{id}" distance="3.0" />
                 <Inverter>
-                    <TimeExpiredCondition seconds="{duration}" ts="{dt}" only_once="{once}" />
+                    <TimeExpiredCondition seconds="40.0" ts="{dt}" only_once="False" />
                 </Inverter>
                 <AvoidRobot agent_id="{id}" time_step="{dt}" />
             </Sequence>

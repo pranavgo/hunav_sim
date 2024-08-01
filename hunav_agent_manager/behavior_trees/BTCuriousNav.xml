@@ -4,8 +4,6 @@
         <Action ID="FollowRobot">
             <input_port name="agent_id" type="int">identifier of the agent</input_port>
             <input_port name="time_step" type="double">time step in seconds to compute movement</input_port>
-            <input_port name="stop_distance" type="double">the agent stops when is closer than this distance</input_port>
-            <input_port name="agent_vel" type="double">the agent velocity approaching the robot</input_port>
         </Action>
         <Condition ID="IsRobotVisible">
             <input_port name="agent_id" type="int">identifier of the agent</input_port>
@@ -24,7 +22,7 @@
             <Sequence name="CurNav"> <!--ReactiveSequence-->
                 <IsRobotVisible agent_id="{id}" distance="10.0" />
                 <Inverter>
-                    <TimeExpiredCondition seconds="{duration}" ts="{dt}" only_once="{once}" />
+                    <TimeExpiredCondition seconds="30.0" ts="{dt}" only_once="True" />
                 </Inverter>
                 <FollowRobot agent_id="{id}" time_step="{dt}" />
             </Sequence>

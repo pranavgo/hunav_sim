@@ -12,6 +12,8 @@
 
 #include "hunav_msgs/msg/agent.hpp"
 #include "hunav_msgs/msg/agents.hpp"
+#include "hunav_msgs/msg/pause_nav.hpp"
+#include "hunav_msgs/msg/pause_navs.hpp"
 //#include "human_nav_msgs/srv/is_robot_visible.hpp"
 #include "hunav_msgs/srv/compute_agent.hpp"
 #include "hunav_msgs/srv/compute_agents.hpp"
@@ -51,7 +53,7 @@ protected:
 
   BT::NodeStatus tree_tick(int id);
   BT::NodeStatus tree_tick(int id, double dt);
-  /**
+    /**
    * @brief ROS service to compute the new state of the agents
    *
    * @param request contains the current state of the agents

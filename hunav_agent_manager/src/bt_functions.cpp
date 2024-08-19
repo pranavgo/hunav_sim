@@ -59,7 +59,7 @@ namespace hunav
     //std::cout << "BTfunctions.robotVisible. Ticking agent: " << id << std::endl;
     if (agent_manager_.isRobotVisible(id, dist, M_PI / 2.0 + 0.17))
     {
-      //std::cout << "BTfunctions.robotVisible. Returning success" << std::endl;
+      std::cout << "BTfunctions.robotVisible. Returning success" << std::endl;
       return BT::NodeStatus::SUCCESS;
     }
     else
@@ -89,7 +89,7 @@ namespace hunav
     //std::cout << "BTfunctions.robotVisible. Ticking agent: " << id << std::endl;
     if (agent_manager_.isRobotNearby(id, dist))
     {
-      //std::cout << "BTfunctions.robotVisible. Returning success" << std::endl;
+      std::cout << "BTfunctions.robotVisible. Returning success" << std::endl;
       return BT::NodeStatus::SUCCESS;
     }
     else
@@ -121,7 +121,7 @@ namespace hunav
     //std::cout << "BTfunctions.robotVisible. Ticking agent: " << id << std::endl;
     if (agent_manager_.isRobotVisible(id, dist, 0.5))
     {
-      //std::cout << "BTfunctions.robotVisible. Returning success" << std::endl;
+      std::cout << "BTfunctions.robotBlocking. Returning success" << std::endl;
       //std::cout << "Alert!!! the robot is blocking agent: " << id << std::endl;
       return BT::NodeStatus::SUCCESS;
     }
@@ -148,7 +148,7 @@ namespace hunav
     }
     else
     {
-      std::cout << "BTfunctions.GoalReached. agent: " << id << " ********Goal NOT REACHED *******"<< std::endl;
+      //std::cout << "BTfunctions.GoalReached. agent: " << id << " ********Goal NOT REACHED *******"<< std::endl;
       return BT::NodeStatus::FAILURE;
     }
   }
@@ -165,12 +165,12 @@ namespace hunav
     int id = msg.value();
     if (agent_manager_.updateGoal(id))
     {
-      std::cout << "BTfunctions.UpdateGoal. agent: " << id << " Goal Updated!" << std::endl;
+      //std::cout << "BTfunctions.UpdateGoal. agent: " << id << " Goal Updated!" << std::endl;
       return BT::NodeStatus::SUCCESS;
     }
     else
     {
-      std::cout << "BTfunctions.UpdateGoal. agent: " << id << " Goal UPDATE FAIL!" << std::endl;
+      //std::cout << "BTfunctions.UpdateGoal. agent: " << id << " Goal UPDATE FAIL!" << std::endl;
       return BT::NodeStatus::FAILURE;
     }
   }
@@ -193,7 +193,7 @@ namespace hunav
 
     int id = msg.value();
     double message = gmsg.value();
-    //std::cout << "BTfunctions.makeGesture. Messaging: " << message << std::endl;
+    std::cout << "BTfunctions.makeGesture. Messaging: " << message << std::endl;
     agent_manager_.makeGesture(id,message);
     return BT::NodeStatus::SUCCESS;
   }
@@ -219,7 +219,7 @@ namespace hunav
     double dt = msg2.value();
     
     // Update SFM model position
-    std::cout << "BTfunctions.RegularNav. Ticking agent" << id <<":  "<< dt << std::endl;
+    //std::cout << "BTfunctions.RegularNav. Ticking agent" << id <<":  "<< dt << std::endl;
     agent_manager_.updatePosition(id, dt); //update the position of an agent in the simulator
 
     
@@ -238,7 +238,7 @@ namespace hunav
     int id = msg.value();
     // stop the agent and just look at the robot (change the agent orientation)
     if(agent_manager_.hasRobotMoved(id)){
-      //std::cout<< "ROBOT MOVED!" << id << std::endl;
+      std::cout<< "ROBOT MOVED!" << id << std::endl;
       return BT::NodeStatus::SUCCESS;
     }
     else{

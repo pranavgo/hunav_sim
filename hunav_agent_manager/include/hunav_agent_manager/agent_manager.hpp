@@ -8,6 +8,8 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include "hunav_msgs/msg/agent.hpp"
 #include "hunav_msgs/msg/agents.hpp"
+#include "hunav_msgs/msg/pause_nav.hpp"
+#include "hunav_msgs/msg/pause_navs.hpp"
 #include <iostream>
 #include <chrono>
 #include <math.h> 
@@ -25,7 +27,9 @@ struct agent {
   int behavior;
   int behavior_state; 
   int gesture;
+  bool pause_nav;
   sfm::Agent sfmAgent;
+  //int current_goal_index;
 };
 
 class AgentManager {

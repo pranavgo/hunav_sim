@@ -384,10 +384,11 @@ namespace hunav
   {
     std::lock_guard<std::mutex> guard(mutex_);
 
-    printf("Updating goal for agent %i\n\n", id); 
+    //printf("Updating goal for agent %i\n\n", id); 
     sfm::Goal g = agents_[id].sfmAgent.goals.front();    
     if (agents_[id].sfmAgent.goals.size() != 1){
       agents_[id].sfmAgent.goals.pop_front();
+      //agents_[id].current_goal_index+=1;
     }
 
     //std::cout<<"Next Goal:"<<agents_[id].sfmAgent.goals.back().center.getX()<<","<<agents_[id].sfmAgent.goals.back().center.getY()<<"\n";
@@ -402,8 +403,14 @@ namespace hunav
   {
     std::lock_guard<std::mutex> guard(mutex_);
     agents_[id].behavior_state = 0;
-
-    sfm::SFM.updatePosition(agents_[id].sfmAgent, dt);
+    // check if pause_nav is true for this agent and pause navigation accordingly
+    if(agents_[id].pause_nav==false){
+      //std::cout<<"Pause Nav FALSE for agent "<<id<<std::endl;
+        sfm::SFM.updatePosition(agents_[id].sfmAgent, dt);
+    }
+    // else{
+    //   std::cout<<"Pause Nav TRUE for agent "<<id<<std::endl;
+    // }
   }
 
   void AgentManager::initializeAgents(
@@ -417,6 +424,8 @@ namespace hunav
       ag.name = a.name;
       ag.type = a.type;
       ag.behavior = a.behavior;
+      ag.pause_nav = false;
+      //ag.current_goal_index = 0;
       ag.behavior_state = a.behavior_state;
       ag.sfmAgent.id = a.id;
       ag.sfmAgent.groupId = a.group_id;
@@ -520,7 +529,7 @@ namespace hunav
       agents_[a.id].sfmAgent.obstacles1.clear();
       
       agents_[a.id].gesture = a.gesture;
-      
+      agents_[a.id].pause_nav = a.pause_nav;
       if (!a.closest_obs.empty())
       {
         for (auto obs : a.closest_obs)
@@ -558,6 +567,9 @@ namespace hunav
     a.type = agents_[id].type;
     a.behavior = agents_[id].behavior;
     a.behavior_state = agents_[id].behavior_state;
+    
+    //a.current_goal_index = agents_[id].current_goal_index;
+    
     a.position.position.x = agents_[id].sfmAgent.position.getX();
     a.position.position.y = agents_[id].sfmAgent.position.getY();
     a.yaw = agents_[id].sfmAgent.yaw.toRadian();
@@ -570,7 +582,6 @@ namespace hunav
     a.velocity.linear.y = agents_[id].sfmAgent.velocity.getY();
     a.velocity.angular.z = agents_[id].sfmAgent.angularVelocity;
     a.gesture = agents_[id].gesture;
-    
     for (auto g : agents_[id].sfmAgent.goals)
     {
       geometry_msgs::msg::Pose p;

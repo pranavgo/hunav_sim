@@ -34,6 +34,8 @@ string name
 uint8 behavior_state
 int8 group_id
 geometry_msgs/Pose position
+bool pause_nav
+#uint8 current_goal_index
 float32 yaw
 geometry_msgs/Twist velocity
 float32 desired_velocity

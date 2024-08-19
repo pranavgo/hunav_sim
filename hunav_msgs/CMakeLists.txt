@@ -34,6 +34,8 @@ find_package(std_msgs REQUIRED)
 set(msg_files
   "msg/Agent.msg"
   "msg/Agents.msg"
+  "msg/PauseNav.msg"
+  "msg/PauseNavs.msg"
 )
 
 set(srv_files

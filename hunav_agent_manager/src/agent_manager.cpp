@@ -61,7 +61,7 @@ namespace hunav
   {
     std::lock_guard<std::mutex> guard(mutex_);
     float squared_dist = robotSquaredDistance(id);
-    //std::cout<<"Robot Distance: "<<squared_dist<<std::endl;
+    std::cout<<"Robot Distance: "<<sqrt(squared_dist)<<"Reqd distance:"<<dist<<std::endl;
     if (sqrt(squared_dist) <= (dist))
     {
       return lineOfSight(id, tolerance);
@@ -194,8 +194,10 @@ namespace hunav
 
     // Change the agent goal.
     // We should compute a goal in front of the robot heading.
-    float newgx = rx + 1.1 * sin(h);
-    float newgy = ry + 1.1 * cos(h);
+    float newgx = rx + 1.5 * cos(h);
+    float newgy = ry + 1.5 * sin(h);
+    // std::cout<<"Goal:"<<newgx<<","<<newgy<<std::endl;
+
     sfm::Goal g;
     g.center.set(newgx, newgy);
     g.radius = 0.05; // robot_.sfmAgent.radius;
@@ -204,7 +206,7 @@ namespace hunav
     // change agent vel according to the proximity of the robot
     // move slowly when close
     float ini_desired_vel = agents_[id].sfmAgent.desiredVelocity;
-    agents_[id].sfmAgent.desiredVelocity = 2.0;
+    agents_[id].sfmAgent.desiredVelocity = 0.5;
     // recompute forces
     computeForces(id);
     // update position
@@ -212,8 +214,9 @@ namespace hunav
     // if the agent is close to the robot,
     // look at the robot
     float dist = sqrt(robotSquaredDistance(id));
-    if (dist <= 1.2)
+    if (dist <= 0.6)
     {
+      // std::cout<<"Robot close"<<std::endl;
       // Agent position
       float ax = agents_[id].sfmAgent.position.getX();
       float ay = agents_[id].sfmAgent.position.getY();
@@ -229,13 +232,14 @@ namespace hunav
     // restore the goals and the velocity
     agents_[id].sfmAgent.goals = gls;
     agents_[id].sfmAgent.desiredVelocity = ini_desired_vel;
+    std::cout<<"BTFunctions.Block Robot Ticking agent"<<std::endl;
   }
   
   
   void AgentManager::makeGesture(int id, int gesture = 1)
   {
     std::lock_guard<std::mutex> guard(mutex_);
-    //std::cout<< "Agent " << id << " is making gesture " << gesture << std::endl;
+    std::cout<< "Agent " << id << " is making gesture " << gesture << std::endl;
     agents_[id].gesture = gesture; 
   }
 
@@ -263,7 +267,6 @@ namespace hunav
     minDiff_orth.setX(-minDiff.normalized().getY());
     minDiff_orth.setY(minDiff.normalized().getX());
 
-        agents_[id].sfmAgent.position - robot_.sfmAgent.position;
     double distance = minDiff.norm() - agents_[id].sfmAgent.radius;
 
     utils::Vector2d Scaryforce =
@@ -298,7 +301,6 @@ namespace hunav
     utils::Vector2d minDiff =
         agents_[id].sfmAgent.position - robot_.sfmAgent.position;
 
-        agents_[id].sfmAgent.position - robot_.sfmAgent.position;
     double distance = minDiff.norm() - agents_[id].sfmAgent.radius;
 
     utils::Vector2d Scaryforce =
@@ -480,7 +482,7 @@ namespace hunav
   {
 
     robot_.name = msg->name;
-    robot_.gesture = 2;
+    robot_.gesture = 0;
     robot_.type = msg->type;
     robot_.behavior = msg->behavior;
     robot_.sfmAgent.id = msg->id;
@@ -556,6 +558,7 @@ namespace hunav
         sqrt(msg->velocity.linear.x * msg->velocity.linear.x +
              msg->velocity.linear.y * msg->velocity.linear.y);
     robot_.sfmAgent.angularVelocity = msg->velocity.angular.z;
+    robot_.gesture = msg->gesture;
   }
 
   hunav_msgs::msg::Agent AgentManager::getUpdatedAgentMsg(int id)

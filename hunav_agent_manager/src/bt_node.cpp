@@ -196,7 +196,7 @@ namespace hunav
       blackboard->set<int>("id", (int)agents.agents[i].id);
       blackboard->set<double>("dt", 0.0);
       // Check the agent behavior to create the proper behavior tree
-      std::cout << "Behavior: " << (int)agents.agents[i].behavior << "  loaded"<<std::endl;
+      RCLCPP_INFO(this->get_logger(), "Behavior: %i",(int)agents.agents[i].behavior);
       if (agents.agents[i].behavior<=hunav_msgs::msg::Agent::BEH_THREATENING){
         switch (agents.agents[i].behavior)
         {
@@ -266,9 +266,10 @@ namespace hunav
         }
       }
       else{
-        RCLCPP_INFO(this->get_logger(), "Loading LLM Tree: LLM_BT_ %i.xml",i);
+        int bt_tree_num = agents.agents[i].behavior-7;
+        RCLCPP_INFO(this->get_logger(), "Loading LLM Tree: LLM_BT_ %i.xml",bt_tree_num);
         trees_[agents.agents[i].id] = factory_.createTreeFromFile(
-            pkg_shared_tree_dir_ + "LLMBT_"+std::to_string(i)+".xml", blackboard);
+            pkg_shared_tree_dir_ + "LLMBT_"+std::to_string(bt_tree_num)+".xml", blackboard);
       }  
       RCLCPP_INFO(this->get_logger(),
                   "Behavior Tree for agent %s [id:%i] loaded!",

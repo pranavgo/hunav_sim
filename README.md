@@ -1,5 +1,7 @@
 # Human Navigation behavior Simulator (HuNavSim)
 
+This is a modified version of hunav_sim, for use with the Scenario generation framework [SocRATES](https://github.com/raoshashank/SoCRATES#this-package-contains-code-for-the-paper-towards-automated-scenario-testing-of-social-navigation-algorithms)
+
 A controller of human navigation behaviors for Robotics based on ROS2.
 
 **This is a work in progress version**

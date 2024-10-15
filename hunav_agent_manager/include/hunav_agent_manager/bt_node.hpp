@@ -190,7 +190,7 @@ protected:
   bool pub_tf_;
   bool pub_forces_;
   bool pub_people_;
-
+  rclcpp::Time prev_pub_people_t_;
   // BT::Tree tree_;
   // std::unique_ptr<BT::ParallelNode> root_;
   // std::unique_ptr<BT::SequenceNode> root_;

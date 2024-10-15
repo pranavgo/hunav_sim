@@ -40,6 +40,38 @@ namespace hunav
       return BT::NodeStatus::FAILURE;
     }
   }
+
+  BT::NodeStatus BTfunctions::humanSays(BT::TreeNode &self){
+    auto idmsg = self.getInput<int>("agent_id");
+    auto tdmsg = self.getInput<int>("target_id");
+    auto msg = self.getInput<int>("message");
+    if (!idmsg)
+    {
+      throw BT::RuntimeError("humanSays. missing required input [agent_id]: ", idmsg.error());
+    }
+    if (!msg)
+    {
+      throw BT::RuntimeError("humanSays. missing required input [message]: ", msg.error());
+    }
+    if (!tdmsg)
+    {
+      throw BT::RuntimeError("humanSays. missing required input [message]: ", tdmsg.error());
+    }
+
+    int id = idmsg.value();
+    int target_id = tdmsg.value();
+    int message = msg.value();
+    ////std::cout << "BTfunctions.robotSays. Message: " << msg.value() << std::endl;
+    if (agent_manager_.humanSays(id,target_id,message)){
+      //std::cout << "BTfunctions.humanSays. Message: " << message << std::endl;
+      return BT::NodeStatus::SUCCESS;
+    }
+    else{
+      //std::cout<<"FAILLLLL"<<std::endl;
+      return BT::NodeStatus::FAILURE;
+    }
+  }
+
   //check if the robot is visible to an agent
   BT::NodeStatus BTfunctions::robotVisible(BT::TreeNode &self)
   {
@@ -59,9 +91,9 @@ namespace hunav
     int id = idmsg.value();
     double dist = dmsg.value();
     //std::cout << "BTfunctions.robotVisible. Ticking agent: " << id << std::endl;
-    if (agent_manager_.isRobotVisible(id, dist, M_PI / 2.0 + 0.17))
+    if (agent_manager_.isRobotVisible(id, dist, 4.188))//M_PI / 2.0 + 0.17))
     {
-      std::cout << "RobotVisible" << std::endl;
+      //std::cout << "RobotVisible" << std::endl;
       return BT::NodeStatus::SUCCESS;
     }
     else
@@ -223,7 +255,7 @@ namespace hunav
     double dt = msg2.value();
     
     // Update SFM model position
-    std::cout << "BTfunctions.RegularNav. Ticking agent" << id <<":  "<< dt << std::endl;
+    //std::cout << "BTfunctions.RegularNav. Ticking agent" << id <<":  "<< dt << std::endl;
     agent_manager_.updatePosition(id, dt); //update the position of an agent in the simulator
 
     
@@ -242,11 +274,11 @@ namespace hunav
     int id = msg.value();
     // stop the agent and just look at the robot (change the agent orientation)
     if(agent_manager_.hasRobotMoved(id)){
-      std::cout<< "ROBOT MOVED!" << id << std::endl;
+      //std::cout<< "ROBOT MOVED!" << id << std::endl;
       return BT::NodeStatus::SUCCESS;
     }
     else{
-      std::cout<< "ROBOT STAYING STILL" << id << std::endl;
+      //std::cout<< "ROBOT STAYING STILL" << id << std::endl;
       return BT::NodeStatus::FAILURE;
     }
     
@@ -264,7 +296,6 @@ namespace hunav
     }
     int id = msg.value();
     // stop the agent and just look at the robot (change the agent orientation)
-    std::cout<< "BTfunctions.robotMoved. Ticking agent" << id << std::endl;
     agent_manager_.lookAtRobot(id);
     return BT::NodeStatus::SUCCESS;
   }
@@ -285,11 +316,37 @@ namespace hunav
     }
     int id = msg.value();
     double dt = msg2.value();
-    std::cout<< "BTfunctions.followRobot. Ticking agent" << id << std::endl;
+    //std::cout<< "BTfunctions.followRobot. Ticking agent" << id << std::endl;
     agent_manager_.followRobot(id, dt);
     return BT::NodeStatus::SUCCESS;
   }
-
+  BT::NodeStatus BTfunctions::followHuman(BT::TreeNode &self)
+  {
+    auto msg = self.getInput<int>("agent_id");
+    auto targetmsg = self.getInput<int>("target_id");
+    auto msg2 = self.getInput<double>("time_step");
+    if (!msg)
+    {
+      throw BT::RuntimeError("followHuman. missing required input [agent_id]: ",
+                             msg.error());
+    }
+    if (!msg2)
+    {
+      throw BT::RuntimeError("followHuman. missing required input [time_step]: ",
+                             msg2.error());
+    }
+    if (!targetmsg)
+    {
+      throw BT::RuntimeError("followHuman. missing required input [time_step]: ",
+                             targetmsg.error());
+    }
+    int id = msg.value();
+    int target_id = targetmsg.value();
+    double dt = msg2.value();
+    //std::cout<< "BTfunctions.followRobot. Ticking agent" << id << std::endl;
+    agent_manager_.followHuman(id,target_id, dt);
+    return BT::NodeStatus::SUCCESS;
+  }
   BT::NodeStatus BTfunctions::avoidRobot(BT::TreeNode &self)
   {
     auto msg = self.getInput<int>("agent_id");
@@ -306,7 +363,7 @@ namespace hunav
     }
     int id = msg.value();
     double dt = msg2.value();
-    std::cout<< "BTfunctions.avoidRobot. Ticking agent" << id << std::endl;
+    //std::cout<< "BTfunctions.avoidRobot. Ticking agent" << id << std::endl;
     agent_manager_.avoidRobot(id, dt);
     return BT::NodeStatus::SUCCESS;
   }
@@ -327,7 +384,7 @@ namespace hunav
     }
     int id = msg.value();
     double dt = msg2.value();
-    std::cout<< "BTfunctions.givewayRobot. Ticking agent" << id << std::endl;
+    //std::cout<< "BTfunctions.givewayRobot. Ticking agent" << id << std::endl;
     agent_manager_.givewaytoRobot(id, dt);
     return BT::NodeStatus::SUCCESS;
   }

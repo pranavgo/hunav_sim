@@ -37,6 +37,7 @@ namespace hunav
         this->declare_parameter<bool>("hunav_loader.publish_people", true);
 
     prev_time_ = this->get_clock()->now();
+    prev_pub_people_t_ = this->get_clock()->now();
     // btfunc_.init();
     registerPrimaryBTNodes();
 
@@ -97,6 +98,13 @@ namespace hunav
 
     BT::PortsList portsMsg = {BT::InputPort<int>("agent_id"),
                               BT::InputPort<int>("message")};   
+    BT::PortsList humanSaysMsg = {BT::InputPort<int>("agent_id"),
+                                      BT::InputPort<int>("target_id"),
+                                      BT::InputPort<int>("message")};   
+    BT::PortsList followHumanMsg = {BT::InputPort<int>("agent_id"),
+                                      BT::InputPort<int>("target_id"),
+                                      BT::InputPort<double>("time_step")};   
+    
     //<NEW PORT LIST>
                     
     factory_.registerSimpleCondition(
@@ -114,6 +122,10 @@ namespace hunav
     factory_.registerSimpleCondition(
       "RobotSays",std::bind(&BTfunctionsExt::robotSays, &btfunc_, _1),
       portsMsg);
+    
+    factory_.registerSimpleCondition(
+      "HumanSays",std::bind(&BTfunctionsExt::humanSays, &btfunc_, _1),
+      humanSaysMsg);
 
     factory_.registerSimpleCondition(
         "RobotMoved", std::bind(&BTfunctionsExt::robotMoved, &btfunc_, _1),
@@ -145,8 +157,13 @@ namespace hunav
     factory_.registerSimpleAction(
         "FollowRobot", std::bind(&BTfunctionsExt::followRobot, &btfunc_, _1),
         portsNav);
+    
     factory_.registerSimpleAction(
-        "AvoidRobot", std::bind(&BTfunctionsExt::avoidRobot, &btfunc_, _1),
+        "FollowHuman", std::bind(&BTfunctionsExt::followHuman, &btfunc_, _1),
+        followHumanMsg);
+
+    factory_.registerSimpleAction(
+        "RunAwayFromRobot", std::bind(&BTfunctionsExt::avoidRobot, &btfunc_, _1),
         portsNav);
     factory_.registerSimpleAction(
         "GiveWaytoRobot", std::bind(&BTfunctionsExt::givewaytoRobot, &btfunc_, _1),
@@ -378,8 +395,13 @@ namespace hunav
     
     publish_agent_states(t, ag);
     publish_robot_state(t, ro);
-    if (pub_people_)
+    // if (pub_people_)
+    //   publish_people(t, ag);
+    if (pub_people_ && (t - prev_pub_people_t_).seconds() > 0.05)
+    {
       publish_people(t, ag);
+      prev_pub_people_t_ = rclcpp::Time(ag->header.stamp);
+    }
 
     double time_step_secs =
         (rclcpp::Time(ag->header.stamp) - prev_time_).seconds();
@@ -459,8 +481,13 @@ namespace hunav
     // if (pub_agent_states_)
     publish_agent_states(t, ag);
     publish_robot_state(t, ro);
-    if (pub_people_)
+    // if (pub_people_)
+    //   publish_people(t, ag);
+    if (pub_people_ && (t - prev_pub_people_t_).seconds() > 0.05)
+    {
       publish_people(t, ag);
+      prev_pub_people_t_ = rclcpp::Time(ag->header.stamp);
+    }
 
     double time_step_secs =
         (rclcpp::Time(ag->header.stamp) - prev_time_).seconds();

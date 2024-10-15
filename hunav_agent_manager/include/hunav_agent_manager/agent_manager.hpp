@@ -134,6 +134,7 @@ public:
    * @return float
    */
   float robotSquaredDistance(int id);
+  float SquaredDistance(int id, int target_id);
   /**
    * @brief stop the agent translation and changing its orientation to look at
    * the robot
@@ -177,6 +178,7 @@ public:
    * @param id identifier of the agent
    * @param dt time to compute the agent's movement
    */
+  void followHuman(int id, int target_id, double dt);
   void avoidRobot(int id, double dt);
   void givewaytoRobot(int id, double dt);
 
@@ -191,6 +193,7 @@ public:
   void makeGesture(int id, int gesture);
   bool goalReached(int id);
   bool robotSays(int id, int msg);
+  bool humanSays(int id, int target_id, int msg);
   bool updateGoal(int id);
 
   //CUSTOM FUNCTIONS FROM LLM

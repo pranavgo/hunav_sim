@@ -32,6 +32,14 @@ namespace hunav
     float yr = robot_.sfmAgent.position.getY();      // position.y;
     return (xr - xa) * (xr - xa) + (yr - ya) * (yr - ya);
   }
+  float AgentManager::SquaredDistance(int id, int target_id)
+  {
+    float xa = agents_[id].sfmAgent.position.getX(); // position.position.x;
+    float ya = agents_[id].sfmAgent.position.getY(); // position.y;
+    float xr = agents_[target_id].sfmAgent.position.getX();     // position.x;
+    float yr = agents_[target_id].sfmAgent.position.getY();     // position.y;
+    return (xr - xa) * (xr - xa) + (yr - ya) * (yr - ya);
+  }
 
   bool AgentManager::lineOfSight(int id, double tolerance)
   {
@@ -61,7 +69,7 @@ namespace hunav
   {
     std::lock_guard<std::mutex> guard(mutex_);
     float squared_dist = robotSquaredDistance(id);
-    std::cout<<"Robot Distance: "<<sqrt(squared_dist)<<"Reqd distance:"<<dist<<std::endl;
+    //std::cout<<"Robot Distance: "<<sqrt(squared_dist)<<"Reqd distance:"<<dist<<std::endl;
     if (sqrt(squared_dist) <= (dist))
     {
       return lineOfSight(id, tolerance);
@@ -77,7 +85,7 @@ namespace hunav
   {
     std::lock_guard<std::mutex> guard(mutex_);
     float squared_dist = robotSquaredDistance(id);
-    std::cout<<"Robot Distance: "<<squared_dist<<std::endl;
+    //std::cout<<"Robot Distance: "<<squared_dist<<std::endl;
     if (sqrt(squared_dist) <= (dist))
     {
       return true;
@@ -109,7 +117,7 @@ namespace hunav
   
   void AgentManager::lookAtRobot(int id)
   {
-
+    agents_[id].behavior_state = 1;
     std::lock_guard<std::mutex> guard(mutex_);
     // Robot position
     float rx = robot_.sfmAgent.position.getX();
@@ -138,8 +146,9 @@ namespace hunav
     {
       agents_[id].sfmAgent.yaw = agents_[id].sfmAgent.yaw + robotYaw;
     }
-    agents_[id].behavior_state = 1;
+    
   }
+  
   void AgentManager::followRobot(int id, double dt)
   {
 
@@ -154,7 +163,23 @@ namespace hunav
 
     // if the agent is close to the robot,
     // stop and look at the robot
+    if (dist <= 1.5)  // 1.5
+    {
+      // printf("Agent %i stoping and looking at the robot! dist: %.2f\n", id,
+      // dist);
+      // Agent position
+      float ax = agents_[id].sfmAgent.position.getX();
+      float ay = agents_[id].sfmAgent.position.getY();
+      float ah = agents_[id].sfmAgent.yaw.toRadian();
+      // Transform robot position to agent coords system
+      float nrx = (rx - ax) * cos(ah) + (ry - ay) * sin(ah);
+      float nry = -(rx - ax) * sin(ah) + (ry - ay) * cos(ah);
+      utils::Angle Yaw;  // = utils::Angle::fromRadian(atan2(nry, nrx));
+      Yaw.setRadian(atan2(nry, nrx));
 
+      agents_[id].sfmAgent.yaw = agents_[id].sfmAgent.yaw + Yaw;
+    }
+    else{
       // Change the agent goal
       sfm::Goal g;
       g.center.set(rx, ry);
@@ -165,7 +190,6 @@ namespace hunav
       // move slowly when close
       float ini_desired_vel = agents_[id].sfmAgent.desiredVelocity;
       agents_[id].sfmAgent.desiredVelocity = 1.8 * (dist / max_dist_view_);
-      std::cout<<"-------------------"<<agents_[id].sfmAgent.desiredVelocity<<std::endl;
       // recompute forces
       computeForces(id);
       // update position
@@ -174,13 +198,73 @@ namespace hunav
       // ends in the next iteration
       agents_[id].sfmAgent.goals.pop_front();
       agents_[id].sfmAgent.desiredVelocity = ini_desired_vel;
+    }
+  }
+  
+  void AgentManager::followHuman(int id, int target_id, double dt)
+  {
+
+    std::lock_guard<std::mutex> guard(mutex_);
+    
+    agents_[id].behavior_state = 1;
+
+    // human position
+    float rx = agents_[target_id].sfmAgent.position.getX();
+    float ry =  agents_[target_id].sfmAgent.position.getY();
+    float dist = sqrt(SquaredDistance(id,target_id));
+
+    // if the agent is close to the robot,
+    // stop and look at the robot
+    if (dist <= 1.5)  // 1.5
+    {
+      // printf("Agent %i stoping and looking at the robot! dist: %.2f\n", id,
+      // dist);
+      // Agent position
+      float ax = agents_[id].sfmAgent.position.getX();
+      float ay = agents_[id].sfmAgent.position.getY();
+      float ah = agents_[id].sfmAgent.yaw.toRadian();
+      // Transform robot position to agent coords system
+      float nrx = (rx - ax) * cos(ah) + (ry - ay) * sin(ah);
+      float nry = -(rx - ax) * sin(ah) + (ry - ay) * cos(ah);
+      utils::Angle Yaw;  // = utils::Angle::fromRadian(atan2(nry, nrx));
+      Yaw.setRadian(atan2(nry, nrx));
+
+      agents_[id].sfmAgent.yaw = agents_[id].sfmAgent.yaw + Yaw;
+    }
+    else{
+      // Change the agent goal
+      sfm::Goal g;
+      g.center.set(rx, ry);
+      g.radius = agents_[target_id].sfmAgent.radius;
+      agents_[id].sfmAgent.goals.push_front(g);
+      int num_goals = agents_[id].sfmAgent.goals.size();
+      std::cout<<"-------------------"<<agents_[id].sfmAgent.goals.size()<<std::endl;
+      // change agent vel according to the proximity of the robot
+      // move slowly when close
+      float ini_desired_vel = agents_[id].sfmAgent.desiredVelocity;
+      agents_[id].sfmAgent.desiredVelocity = 1.8 * (dist / max_dist_view_);
+      //std::cout<<"-------------------"<<agents_[id].sfmAgent.desiredVelocity<<std::endl;
+      // recompute forces
+      computeForces(id);
+      // update position
+      sfm::SFM.updatePosition(agents_[id].sfmAgent, dt);
+      // restore values just in case the approximation
+      // ends in the next iteration
+      
+      if(agents_[id].sfmAgent.goals.size() == num_goals)
+      { 
+        agents_[id].sfmAgent.goals.pop_front();
+        std::cout<<"-------------------"<<agents_[id].sfmAgent.goals.size()<<std::endl;
+      }
+      agents_[id].sfmAgent.desiredVelocity = ini_desired_vel;
+      std::cout<<"-----------Follow Human--------"<<agents_[id].sfmAgent.desiredVelocity<<std::endl;
+    }
   }
 
   void AgentManager::blockRobot(int id, double dt)
   {
 
     std::lock_guard<std::mutex> guard(mutex_);
-
     agents_[id].behavior_state = 1;
 
     // Robot position
@@ -235,11 +319,10 @@ namespace hunav
     std::cout<<"BTFunctions.Block Robot Ticking agent"<<std::endl;
   }
   
-  
   void AgentManager::makeGesture(int id, int gesture = 1)
   {
     std::lock_guard<std::mutex> guard(mutex_);
-    std::cout<< "Agent " << id << " is making gesture " << gesture << std::endl;
+    //std::cout<< "Agent " << id << " is making gesture " << gesture << std::endl;
     agents_[id].gesture = gesture; 
   }
 
@@ -252,41 +335,38 @@ namespace hunav
   void AgentManager::givewaytoRobot(int id, double dt)
   {
     std::lock_guard<std::mutex> guard(mutex_);
+    if (agents_[id].behavior_state!=2){
+      agents_[id].behavior_state = 2;
 
-    agents_[id].behavior_state = 1;
+      //robot position
+      float rx = robot_.sfmAgent.position.getX();
+      float ry = robot_.sfmAgent.position.getY();
+      float h = robot_.sfmAgent.yaw.toRadian();
+      float agx = agents_[id].sfmAgent.position.getX();
+      float agy = agents_[id].sfmAgent.position.getY();
+      // Store the initial set o goals
+      std::list<sfm::Goal> gls = agents_[id].sfmAgent.goals;
 
-    // we decrease the maximum velocity
-    double init_vel = agents_[id].sfmAgent.desiredVelocity;
-    agents_[id].sfmAgent.desiredVelocity = 0.6;
+      // Change the agent goal.
+      // We should compute a goal out of the robot's direct path, (assumed to be along the line connecting the robot and the human)
+      float alpha = 2.0;
+      float r = sqrt(pow((rx - agx),2) + pow((ry - agy),2));
+      float newgx = alpha*(agy-ry)/r;
+      float newgy = alpha*(agx-rx)/r;
+      
+      sfm::Goal g;
+      g.center.set(newgx, newgy);
+      g.radius = 0.05; // robot_.sfmAgent.radius;
+      agents_[id].sfmAgent.goals.push_front(g);
+      agents_[id].sfmAgent.goals = gls;
+    }
+    //std::cout<<"BTFunctions.giveway to Robot Ticking agent"<<std::endl;
     computeForces(id);
-
-    // We add an extra repulsive force from the robot
-    utils::Vector2d minDiff =
-        agents_[id].sfmAgent.position - robot_.sfmAgent.position;
-    utils::Vector2d minDiff_orth;
-    minDiff_orth.setX(-minDiff.normalized().getY());
-    minDiff_orth.setY(minDiff.normalized().getX());
-
-    double distance = minDiff.norm() - agents_[id].sfmAgent.radius;
-
-    utils::Vector2d Scaryforce =
-        20.0 * (agents_[id].sfmAgent.params.forceSigmaObstacle / distance) *
-        minDiff_orth.normalized();
-
-    // utils::Vector2d Scaryforce = -1.0 * agents_[id].sfmAgent.params.forceFactorObstacle *
-    //       std::exp(-distance / agents_[id].sfmAgent.params.forceSigmaObstacle) *
-    //       minDiff.normalized();
-    
-    agents_[id].sfmAgent.forces.globalForce += Scaryforce;
-
-    // update position
     sfm::SFM.updatePosition(agents_[id].sfmAgent, dt);
-
-    // restore desired vel
-    agents_[id].sfmAgent.desiredVelocity = init_vel;
+  
   }
 
-    void AgentManager::avoidRobot(int id, double dt)
+  void AgentManager::avoidRobot(int id, double dt)
   {
     std::lock_guard<std::mutex> guard(mutex_);
 
@@ -315,37 +395,6 @@ namespace hunav
     // restore desired vel
     agents_[id].sfmAgent.desiredVelocity = init_vel;
   }
-
-  // void AgentManager::ignoreRobot(int id, double dt)
-  // {
-  //   std::lock_guard<std::mutex> guard(mutex_);
-
-  //   agents_[id].behavior_state = 1;
-
-  //   // we decrease the maximum velocity
-  //   double init_vel = agents_[id].sfmAgent.desiredVelocity;
-  //   agents_[id].sfmAgent.desiredVelocity = 0.6;
-  //   computeForces(id);
-
-  //   // We add an extra repulsive force from the robot
-  //   utils::Vector2d minDiff =
-  //       agents_[id].sfmAgent.position - robot_.sfmAgent.position;
-  //   double distance = minDiff.norm() - agents_[id].sfmAgent.radius;
-
-  //   utils::Vector2d Scaryforce =
-  //       20.0 * (agents_[id].sfmAgent.params.forceSigmaObstacle / distance) *
-  //       minDiff.normalized();
-  //   agents_[id].sfmAgent.forces.globalForce += Scaryforce;
-
-  //   // update position
-  //   sfm::SFM.updatePosition(agents_[id].sfmAgent, dt);
-
-  //   // restore desired vel
-  //   agents_[id].sfmAgent.desiredVelocity = init_vel;
-  // }
-
-
-
 
   bool AgentManager::goalReached(int id)
   {
@@ -382,6 +431,17 @@ namespace hunav
       return false;
   }
 
+  bool AgentManager::humanSays(int id,int target_id,int msg){
+    std::lock_guard<std::mutex> guard(mutex_);
+    //std::cout<<"Pinging Human Says"<<"\n";
+    if (agents_[target_id].gesture == msg){
+      return true;
+    }
+    else
+      return false;
+  }
+
+
   bool AgentManager::updateGoal(int id)
   {
     std::lock_guard<std::mutex> guard(mutex_);
@@ -407,12 +467,8 @@ namespace hunav
     agents_[id].behavior_state = 0;
     // check if pause_nav is true for this agent and pause navigation accordingly
     if(agents_[id].pause_nav==false){
-      //std::cout<<"Pause Nav FALSE for agent "<<id<<std::endl;
         sfm::SFM.updatePosition(agents_[id].sfmAgent, dt);
     }
-    // else{
-    //   std::cout<<"Pause Nav TRUE for agent "<<id<<std::endl;
-    // }
   }
 
   void AgentManager::initializeAgents(

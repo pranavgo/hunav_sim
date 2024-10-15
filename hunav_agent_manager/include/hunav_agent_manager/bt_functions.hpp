@@ -72,6 +72,7 @@ public:
   BT::NodeStatus robotVisible(BT::TreeNode &self);
   BT::NodeStatus robotNearby(BT::TreeNode &self);
   BT::NodeStatus robotSays(BT::TreeNode &self);
+  BT::NodeStatus humanSays(BT::TreeNode &self);
   BT::NodeStatus goalReached(BT::TreeNode &self);
   BT::NodeStatus makeGesture(BT::TreeNode &self);
   BT::NodeStatus robotBlocking(BT::TreeNode &self);
@@ -87,6 +88,7 @@ public:
   BT::NodeStatus avoidRobot(BT::TreeNode &self);
   BT::NodeStatus givewaytoRobot(BT::TreeNode &self);
   BT::NodeStatus followRobot(BT::TreeNode &self);
+  BT::NodeStatus followHuman(BT::TreeNode &self);
   BT::NodeStatus blockRobot(BT::TreeNode &self);
 
   //<NEW BT ACTION>
